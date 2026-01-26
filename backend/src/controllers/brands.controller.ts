@@ -22,7 +22,7 @@ export const deleteBrand = async (req: Request, res: Response) => {
     try {
         await prisma.brand.delete({ where: { id } });
         res.json({ success: true });
-    } catch (e) {
+    } catch (e: any) {
         res.status(400).json({ error: "Cannot delete brand (likely used in orders)" });
     }
 }

@@ -69,20 +69,25 @@ export const createOrder = async (req: Request, res: Response): Promise<any> => 
 
     // 2. Resolve Brand (Name or ID)
     let brandId = data.brandId;
-    // Check if it's a UUID or existing ID, if not treat as name
-    const brandCheck = await prisma.brand.findUnique({ where: { id: brandId } });
-    if (!brandCheck) {
-        // Try to find by name
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(brandId);
+
+    if (isUuid) {
+        // Check if it's a valid existing ID
+        const brandCheck = await prisma.brand.findUnique({ where: { id: brandId } });
+        if (!brandCheck) {
+             // If UUID but not found, check if maybe it's a name that looks like a UUID (unlikely but safe)
+             // or just create/fail. Assuming if UUID provided, it must exist.
+             // But for safety/fallback similar to below:
+             const newBrand = await prisma.brand.create({ data: { name: brandId } });
+             brandId = newBrand.id;
+        }
+    } else {
+        // Not a UUID, treat as Name
         const brandByName = await prisma.brand.findUnique({ where: { name: brandId } });
         if (brandByName) {
             brandId = brandByName.id;
         } else {
-            // Optional: Create brand if not exists? Or Error?
-            // Prompt implied Brand is managed. Let's assume error if not found to be safe,
-            // or create it to mimic dataService "lazy" behavior?
-            // dataService adds brand if not exists in 'addBrand' but 'createOrder' takes a brand string.
-            // We will assume valid ID is sent or strictly valid Name.
-            // Let's create it if missing to be user-friendly during migration
+            // Create if missing
             const newBrand = await prisma.brand.create({ data: { name: brandId } });
             brandId = newBrand.id;
         }
@@ -234,7 +239,7 @@ export const getOrders = async (req: Request, res: Response) => {
         orderBy: { createdAt: 'desc' }
     });
     // Map brand name to flattened structure if needed by frontend
-    const mapped = orders.map(o => ({
+    const mapped = orders.map((o: any) => ({
         ...o,
         brand: o.brand.name,
         brandId: o.brandId,

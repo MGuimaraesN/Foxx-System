@@ -5,7 +5,8 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { getOrders, getBrands, getSettings } from '../services/dataService';
 import { ServiceOrder, Brand } from '../types';
-import { utils, writeFile } from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useTranslation } from '../services/i18n';
@@ -89,30 +90,40 @@ export const Reports: React.FC = () => {
   const formatCurrency = (val: number) => 
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
-  const generateExcel = () => {
-    const wsData = reportData.map(o => ({
-      "Data": o.entryDate,
-      "Número da O.S": o.osNumber,
-      "Cliente": o.customerName,
-      "Marca": o.brand,
-      "Comissão (R$)": o.commissionValue,
-      "Status": t(`status.${o.status}`),
-    }));
+  const generateExcel = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Relatorio_Comissao");
 
-    // Add totals row
-    wsData.push({
-      "Data": "TOTAL",
-      "Número da O.S": "" as any,
-      "Cliente": "",
-      "Marca": "",
-      "Comissão (R$)": totals.commission,
-      "Status": "" as any
+    worksheet.columns = [
+      { header: "Data", key: "date", width: 15 },
+      { header: "Número da O.S", key: "osNumber", width: 15 },
+      { header: "Cliente", key: "customer", width: 30 },
+      { header: "Marca", key: "brand", width: 20 },
+      { header: "Comissão (R$)", key: "commission", width: 15 },
+      { header: "Status", key: "status", width: 15 },
+    ];
+
+    reportData.forEach(o => {
+      worksheet.addRow({
+        date: o.entryDate.split('T')[0],
+        osNumber: o.osNumber,
+        customer: o.customerName,
+        brand: o.brand,
+        commission: o.commissionValue,
+        status: t(`status.${o.status}`),
+      });
     });
 
-    const wb = utils.book_new();
-    const ws = utils.json_to_sheet(wsData);
-    utils.book_append_sheet(wb, ws, "Relatorio_Comissao");
-    writeFile(wb, `comissao_${startDate}_a_${endDate}.xlsx`);
+    // Totals Row
+    const totalRow = worksheet.addRow({
+        date: "TOTAL",
+        commission: totals.commission
+    });
+    totalRow.font = { bold: true };
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    saveAs(blob, `comissao_${startDate}_a_${endDate}.xlsx`);
   };
 
   const generatePDF = () => {

@@ -18,7 +18,7 @@ export const payPeriod = async (req: Request, res: Response): Promise<any> => {
     const now = new Date();
 
     // Transaction to ensure consistency
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       // 1. Mark Period as Paid
       await tx.period.update({
         where: { id },
@@ -51,7 +51,7 @@ export const payPeriod = async (req: Request, res: Response): Promise<any> => {
         // But requested logic "Replica EXATAMENTE".
         // We can batch create logs.
 
-        const logs = ordersToUpdate.map(o => ({
+        const logs = ordersToUpdate.map((o: any) => ({
             action: 'STATUS_CHANGE',
             details: 'Period closed and paid',
             timestamp: now,

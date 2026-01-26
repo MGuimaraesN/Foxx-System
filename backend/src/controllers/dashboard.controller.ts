@@ -73,13 +73,13 @@ export const getDashboard = async (req: Request, res: Response) => {
     });
 
     // Need to join Brand Names manually or via separate query as groupBy doesn't support include
-    const brandIds = brandRankings.map(b => b.brandId);
+    const brandIds = brandRankings.map((b: any) => b.brandId);
     const brands = await prisma.brand.findMany({
         where: { id: { in: brandIds } }
     });
 
-    const topBrands = brandRankings.map(r => {
-        const brand = brands.find(b => b.id === r.brandId);
+    const topBrands = brandRankings.map((r: any) => {
+        const brand = brands.find((b: any) => b.id === r.brandId);
         return {
             name: brand?.name || 'Unknown',
             value: Number(r._sum.commissionValue || 0)
@@ -94,7 +94,7 @@ export const getDashboard = async (req: Request, res: Response) => {
         take: 5
     });
 
-    const topCustomers = customerRankings.map(r => ({
+    const topCustomers = customerRankings.map((r: any) => ({
         name: r.customerName,
         value: Number(r._sum.serviceValue || 0)
     }));
