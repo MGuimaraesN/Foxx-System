@@ -86,8 +86,8 @@ export const Reports: React.FC = () => {
 
     setReportData(result);
     
-    const service = result.reduce((acc, curr) => acc + curr.serviceValue, 0);
-    const commission = result.reduce((acc, curr) => acc + curr.commissionValue, 0);
+    const service = result.reduce((acc, curr) => acc + Number(curr.serviceValue || 0), 0);
+    const commission = result.reduce((acc, curr) => acc + Number(curr.commissionValue || 0), 0);
     setTotals({ service, commission, count: result.length });
 
   }, [orders, startDate, endDate, brandFilter, statusFilter]);
@@ -497,7 +497,9 @@ export const Reports: React.FC = () => {
               ) : (
                 reportData.map(order => (
                     <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                        <td className="px-6 py-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">{order.entryDate}</td>
+                        <td className="px-6 py-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                            {new Date(order.entryDate).toLocaleDateString(language)}
+                        </td>
                         <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">#{order.osNumber}</td>
                         <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{order.customerName}</td>
                         <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{order.brand}</td>
