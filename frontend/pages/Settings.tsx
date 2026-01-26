@@ -21,19 +21,27 @@ export const Settings: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const s = getSettings();
-    setPercentage(s.fixedCommissionPercentage.toString());
-    setCompany({
-        name: s.companyName || '',
-        cnpj: s.companyCnpj || '',
-        address: s.companyAddress || '',
-        contact: s.companyContact || '',
-        logoUrl: s.companyLogoUrl || '',
-        primaryColor: s.primaryColor || '#2c3e50'
-    });
+    const loadSettings = async () => {
+      try {
+        const s = await getSettings();
+        // Use nullish coalescing para evitar crash no toString()
+        setPercentage(s.fixedCommissionPercentage?.toString() || '10');
+        setCompany({
+            name: s.companyName || '',
+            cnpj: s.companyCnpj || '',
+            address: s.companyAddress || '',
+            contact: s.companyContact || '',
+            logoUrl: s.companyLogoUrl || '',
+            primaryColor: s.primaryColor || '#2c3e50'
+        });
+      } catch (error) {
+        console.error("Erro ao carregar configurações", error);
+      }
+    };
+    loadSettings();
   }, []);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const val = parseFloat(percentage);
     if (isNaN(val) || val < 0 || val > 100) {
@@ -41,7 +49,7 @@ export const Settings: React.FC = () => {
       return;
     }
     
-    saveSettings({ 
+    await saveSettings({
         fixedCommissionPercentage: val,
         companyName: company.name,
         companyCnpj: company.cnpj,

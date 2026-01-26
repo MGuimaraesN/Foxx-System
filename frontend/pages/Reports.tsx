@@ -31,12 +31,17 @@ export const Reports: React.FC = () => {
   const [totals, setTotals] = useState({ service: 0, commission: 0, count: 0 });
 
   useEffect(() => {
-    // Initial load
-    setOrders(getOrders());
-    setBrands(getBrands());
-    
-    // Set default dates (Current Month)
-    setThisMonth();
+    const fetchData = async () => {
+      try {
+        const [ordersData, brandsData] = await Promise.all([getOrders(), getBrands()]);
+        setOrders(ordersData);
+        setBrands(brandsData);
+        setThisMonth(); // Mantém a lógica de data
+      } catch (error) {
+        console.error("Erro ao carregar relatórios", error);
+      }
+    };
+    fetchData();
   }, []);
 
   const setThisMonth = () => {

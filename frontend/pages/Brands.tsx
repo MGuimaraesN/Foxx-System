@@ -33,23 +33,28 @@ export const Brands: React.FC = () => {
     }
   }, [searchTerm, brands]);
 
-  const loadBrands = () => {
-    setBrands(getBrands());
+  const loadBrands = async () => {
+    try {
+      const data = await getBrands();
+      setBrands(data);
+    } catch (error) {
+      console.error("Erro ao carregar marcas", error);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     try {
       if (!formData.name.trim()) throw new Error(t('brands.errorRequired'));
 
       if (editingId) {
-        updateBrand(editingId, formData.name);
+        await updateBrand(editingId, formData.name);
       } else {
-        addBrand(formData.name);
+        await addBrand(formData.name);
       }
       
-      loadBrands();
+      await loadBrands();
       resetForm();
     } catch (err: any) {
       setError(err.message);
@@ -62,10 +67,10 @@ export const Brands: React.FC = () => {
     setIsFormOpen(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm(t('brands.confirmDelete'))) {
-      deleteBrand(id);
-      loadBrands();
+      await deleteBrand(id);
+      await loadBrands();
     }
   };
 
