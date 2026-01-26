@@ -131,9 +131,9 @@ export const Reports: React.FC = () => {
     saveAs(blob, `comissao_${startDate}_a_${endDate}.xlsx`);
   };
 
-  const generatePDF = () => {
+  const generatePDF = async () => {
     const doc = new jsPDF();
-    const settings = getSettings();
+    const settings = await getSettings().catch(() => ({}) as any);
 
     // -- Dimensions (A4) --
     const marginLeft = 15;
@@ -149,8 +149,8 @@ export const Reports: React.FC = () => {
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(30, 30, 30);
-    const companyName = (settings.companyName || "Commission System").toUpperCase();
-    doc.text(companyName, marginLeft, cursorY);
+    const systemName = (settings.companyName || import.meta.env.VITE_APP_NAME || "Commission System").toUpperCase();
+    doc.text(systemName, marginLeft, cursorY);
     
     // CNPJ (Left)
     if (settings.companyCnpj) {
@@ -225,10 +225,11 @@ export const Reports: React.FC = () => {
         }
 
         const tableBody = finalData.map(o => [
-            o.entryDate.split('-').reverse().join('/'),
+            new Date(o.entryDate).toLocaleDateString('pt-BR'),
             o.osNumber.toString(),
             o.customerName,
             o.brand,
+            formatCurrency(o.serviceValue),
             formatCurrency(o.commissionValue),
             t(`status.${o.status}`).toUpperCase()
         ]);
@@ -237,7 +238,7 @@ export const Reports: React.FC = () => {
         const tableFoot = [
             { 
                 content: "TOTAL DE COMISSÃO NO PERÍODO", 
-                colSpan: 4, 
+                colSpan: 5,
                 styles: { halign: 'right' as const, fontStyle: 'bold' as const, textColor: [60, 60, 60] } 
             },
             { 
@@ -255,6 +256,7 @@ export const Reports: React.FC = () => {
                 "Número da O.S",
                 "Cliente",
                 "Marca",
+                "Valor (R$)",
                 "Comissão (R$)",
                 "Status"
             ]],
@@ -284,11 +286,12 @@ export const Reports: React.FC = () => {
             },
             columnStyles: {
                 0: { cellWidth: 22, halign: 'left' }, // Data
-                1: { cellWidth: 28, halign: 'left' }, // Número da O.S (Wide enough for label)
-                2: { cellWidth: 'auto', halign: 'left' }, // Cliente (Fills remaining)
-                3: { cellWidth: 30, halign: 'left' }, // Marca
-                4: { cellWidth: 32, halign: 'right' }, // Comissão (R$)
-                5: { cellWidth: 25, halign: 'center' } // Status (Wide enough for PENDENTE)
+                1: { cellWidth: 28, halign: 'left' }, // Número da O.S
+                2: { cellWidth: 'auto', halign: 'left' }, // Cliente
+                3: { cellWidth: 25, halign: 'left' }, // Marca
+                4: { cellWidth: 28, halign: 'right' }, // Valor (R$)
+                5: { cellWidth: 28, halign: 'right' }, // Comissão (R$)
+                6: { cellWidth: 25, halign: 'center' } // Status
             },
             didParseCell: (data) => {
                 // Zebra stripes
@@ -297,7 +300,7 @@ export const Reports: React.FC = () => {
                 }
                 
                 // Status Styling (Plain Text, No Wrap)
-                if (data.section === 'body' && data.column.index === 5) {
+                if (data.section === 'body' && data.column.index === 6) {
                     const status = data.cell.raw as string;
                     if (status === 'PAGO' || status === 'PAID') {
                          data.cell.styles.textColor = [20, 120, 60]; // Dark Green
@@ -314,7 +317,7 @@ export const Reports: React.FC = () => {
                      // Simplified Header
                      doc.setFontSize(8);
                      doc.setTextColor(150, 150, 150);
-                     doc.text("Relatório de Comissão - " + companyName, marginLeft, 10);
+                     doc.text("Relatório de Comissão - " + systemName, marginLeft, 10);
                 }
                 
                 // Footer (Page X of Y)
