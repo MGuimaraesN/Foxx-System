@@ -1,10 +1,12 @@
 {
-  "name": "commission-system-root",
+  "name": "Commission-System",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "postinstall": "cd backend && npm install && cd ../frontend && npm install",
     "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "build": "npm run build --prefix backend && npm run build --prefix frontend",
+    "start": "npm run start --prefix backend && npm run preview --prefix frontend",
     "seed": "npm run seed --prefix backend"
   },
   "devDependencies": {
