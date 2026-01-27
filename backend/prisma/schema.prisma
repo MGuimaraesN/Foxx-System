@@ -44,14 +44,15 @@ model ServiceOrder {
   commissionValue Decimal
   status          String     @default("PENDING") // PENDING, PAID
   paymentMethod   String? // PIX, CASH, CARD, TRANSFER
+  description     String?
   createdAt       DateTime   @default(now())
   paidAt          DateTime?
 
   brandId         String
   brand           Brand      @relation(fields: [brandId], references: [id])
 
-  periodId        String
-  period          Period     @relation(fields: [periodId], references: [id])
+  periodId        String?
+  period          Period?    @relation(fields: [periodId], references: [id])
 
   auditLogs       AuditLog[]
 }

@@ -118,6 +118,7 @@ export const createOrder = async (req: Request, res: Response): Promise<any> => 
         commissionValue,
         status: 'PENDING',
         paymentMethod: data.paymentMethod,
+        description: data.description,
         periodId: period.id,
         brandId: brandId,
         auditLogs: {

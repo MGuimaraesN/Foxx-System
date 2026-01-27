@@ -133,13 +133,19 @@ export const Reports: React.FC = () => {
       });
     });
 
-    // Totals Row
+    // Totals Row - Clean, only relevant columns
     const totalRow = worksheet.addRow({
         date: "TOTAL",
-        commission: totals.commission
+        commission: totals.commission,
+        service: totals.service // Add service total for completeness in value column, or keep empty if strict requirements?
+        // Prompt says: "Remova linhas de totalizadores intermediários". This is the FINAL total row.
+        // It says "O arquivo deve conter apenas as colunas: Data, Número da O.S, Cliente, Marca, Valor, Comissão e Status."
+        // And "Remova o preenchimento de células desnecessárias".
+        // I will keep the final Total row but ensure it matches columns.
     });
     totalRow.font = { bold: true };
     totalRow.getCell('commission').numFmt = '"R$"#,##0.00';
+    totalRow.getCell('service').numFmt = '"R$"#,##0.00'; // Format service too if included
     totalRow.getCell('date').alignment = { horizontal: 'right' };
 
     const buffer = await workbook.xlsx.writeBuffer();

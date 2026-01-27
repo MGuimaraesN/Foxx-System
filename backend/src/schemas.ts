@@ -7,6 +7,7 @@ export const createOrderSchema = z.object({
   brandId: z.string().uuid().or(z.string().min(1)), // Accepting UUID or whatever ID
   serviceValue: z.number().positive(),
   paymentMethod: z.string().optional(),
+  description: z.string().optional(),
 });
 
 export const updateOrderSchema = z.object({
@@ -16,5 +17,6 @@ export const updateOrderSchema = z.object({
   brandId: z.string().optional(),
   serviceValue: z.number().positive().optional(),
   paymentMethod: z.string().optional(),
+  description: z.string().optional(),
   status: z.enum(['PENDING', 'PAID']).optional(),
 });

@@ -97,6 +97,35 @@ export const createPeriod = async (req: Request, res: Response): Promise<any> =>
     }
 };
 
+export const deletePeriod = async (req: Request, res: Response): Promise<any> => {
+    const id = req.params.id as string;
+    try {
+        const period = await prisma.period.findUnique({ where: { id } });
+        if (!period) return res.status(404).json({ error: "Period not found" });
+
+        // Transaction to ensure consistency
+        await prisma.$transaction(async (tx: any) => {
+            // 1. Revert Orders (Unlink period, set status to PENDING, clear paidAt)
+            await tx.serviceOrder.updateMany({
+                where: { periodId: id },
+                data: {
+                    periodId: null,
+                    status: 'PENDING',
+                    paidAt: null
+                }
+            });
+
+            // 2. Delete Period
+            await tx.period.delete({ where: { id } });
+        });
+
+        res.json({ success: true });
+    } catch(e: any) {
+        console.error(e);
+        res.status(500).json({ error: e.message });
+    }
+};
+
 export const updatePeriod = async (req: Request, res: Response): Promise<any> => {
     const id = req.params.id as string;
     try {

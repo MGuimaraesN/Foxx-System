@@ -47,7 +47,8 @@ export const ServiceOrders: React.FC = () => {
     customerName: 'Consumidor Padrão',
     brand: '',
     serviceValue: '',
-    paymentMethod: ''
+    paymentMethod: '',
+    description: ''
   });
 
   const [newBrandName, setNewBrandName] = useState('');
@@ -215,7 +216,8 @@ export const ServiceOrders: React.FC = () => {
         customerName: formData.customerName,
         brand: formData.brand,
         serviceValue: val,
-        paymentMethod: formData.paymentMethod as any
+        paymentMethod: formData.paymentMethod as any,
+        description: formData.description
       };
 
       if (editingId) {
@@ -511,6 +513,16 @@ export const ServiceOrders: React.FC = () => {
                 onChange={e => setFormData({...formData, customerName: e.target.value})}
                 placeholder="Consumidor Padrão"
               />
+
+              <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-medium text-slate-500 dark:text-slate-400 ml-1">Descrição (Opcional)</label>
+                  <textarea
+                      className="w-full bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none h-20"
+                      value={formData.description}
+                      onChange={e => setFormData({...formData, description: e.target.value})}
+                      placeholder="Detalhes do serviço..."
+                  />
+              </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
