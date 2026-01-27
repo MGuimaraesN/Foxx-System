@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Search, Trash2, Edit2, AlertCircle, Download, Filter, X, CheckCircle, DollarSign, CheckSquare, Square, Copy, History, CreditCard, Clock, FileText } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2, AlertCircle, Download, Filter, X, CheckCircle, DollarSign, CheckSquare, Square, Copy, History, CreditCard, Clock, FileText, Tag } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { createOrder, getOrders, getSettings, updateOrder, deleteOrder, getBrands, updateOrderStatus, bulkUpdateOrderStatus, bulkDeleteOrders, duplicateOrder } from '../services/dataService';
+import { createOrder, getOrders, getSettings, updateOrder, deleteOrder, getBrands, updateOrderStatus, bulkUpdateOrderStatus, bulkDeleteOrders, duplicateOrder, addBrand } from '../services/dataService';
 import { ServiceOrder, Brand, AuditLogEntry, AppSettings } from '../types';
 import { useTranslation } from '../services/i18n';
 
@@ -49,6 +49,9 @@ export const ServiceOrders: React.FC = () => {
     serviceValue: '',
     paymentMethod: ''
   });
+
+  const [newBrandName, setNewBrandName] = useState('');
+  const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
 
   const [settings, setSettings] = useState<AppSettings>({ fixedCommissionPercentage: 10 });
 
@@ -343,6 +346,19 @@ export const ServiceOrders: React.FC = () => {
       setIsFormOpen(true);
   }
 
+  const handleQuickAddBrand = async () => {
+      if (!newBrandName.trim()) return;
+      try {
+          const brand = await addBrand(newBrandName.trim());
+          await refreshData();
+          setFormData(prev => ({ ...prev, brand: brand.name }));
+          setNewBrandName('');
+          setIsBrandModalOpen(false);
+      } catch (e: any) {
+          alert(e.message || "Error adding brand");
+      }
+  };
+
   const formatCurrency = (val: number) => 
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
@@ -499,19 +515,29 @@ export const ServiceOrders: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-medium text-slate-500 dark:text-slate-400 ml-1">{t('orders.brand')}</label>
-                    <div className="relative">
-                        <select 
-                            className="w-full bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all appearance-none"
-                            value={formData.brand}
-                            onChange={e => setFormData({...formData, brand: e.target.value})}
-                            required
+                    <div className="flex gap-2">
+                        <div className="relative flex-1">
+                            <select
+                                className="w-full bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all appearance-none"
+                                value={formData.brand}
+                                onChange={e => setFormData({...formData, brand: e.target.value})}
+                                required
+                            >
+                                <option value="" disabled>{t('orders.selectBrand')}</option>
+                                {brandsList.map(b => (
+                                    <option key={b.id} value={b.name}>{b.name}</option>
+                                ))}
+                            </select>
+                            <Filter className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400" size={16} />
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setIsBrandModalOpen(true)}
+                            className="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                            title="Add Brand"
                         >
-                            <option value="" disabled>{t('orders.selectBrand')}</option>
-                            {brandsList.map(b => (
-                                <option key={b.id} value={b.name}>{b.name}</option>
-                            ))}
-                        </select>
-                        <Filter className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400" size={16} />
+                            <Plus size={18} />
+                        </button>
                     </div>
                 </div>
 

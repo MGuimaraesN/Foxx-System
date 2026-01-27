@@ -5,6 +5,7 @@ import * as periodsController from './controllers/periods.controller';
 import * as dashboardController from './controllers/dashboard.controller';
 import * as settingsController from './controllers/settings.controller';
 import * as brandsController from './controllers/brands.controller';
+import * as auditController from './controllers/audit.controller';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -37,6 +38,9 @@ app.put('/api/settings', settingsController.updateSettings);
 app.get('/api/brands', brandsController.getBrands);
 app.post('/api/brands', brandsController.createBrand);
 app.delete('/api/brands/:id', brandsController.deleteBrand);
+
+// Audit
+app.get('/api/audit', auditController.getAuditLogs);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

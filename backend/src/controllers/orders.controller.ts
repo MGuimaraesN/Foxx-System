@@ -75,20 +75,30 @@ export const createOrder = async (req: Request, res: Response): Promise<any> => 
         // Check if it's a valid existing ID
         const brandCheck = await prisma.brand.findUnique({ where: { id: brandId } });
         if (!brandCheck) {
-             // If UUID but not found, check if maybe it's a name that looks like a UUID (unlikely but safe)
-             // or just create/fail. Assuming if UUID provided, it must exist.
-             // But for safety/fallback similar to below:
-             const newBrand = await prisma.brand.create({ data: { name: brandId } });
-             brandId = newBrand.id;
+             // Fallback: treat as name if strict UUID lookup fails (rare edge case)
+             const normalizedName = brandId.trim();
+             const existing = await prisma.brand.findUnique({ where: { name: normalizedName } });
+             if (existing) {
+                 brandId = existing.id;
+             } else {
+                 const newBrand = await prisma.brand.create({ data: { name: normalizedName } });
+                 brandId = newBrand.id;
+             }
         }
     } else {
         // Not a UUID, treat as Name
-        const brandByName = await prisma.brand.findUnique({ where: { name: brandId } });
+        const normalizedName = brandId.trim();
+        // Check case-insensitive? SQLite default collation might handle it, but precise lookup prefers exact match.
+        // We will stick to exact name match but trimmed.
+        const brandByName = await prisma.brand.findFirst({
+            where: { name: normalizedName }
+        });
+
         if (brandByName) {
             brandId = brandByName.id;
         } else {
             // Create if missing
-            const newBrand = await prisma.brand.create({ data: { name: brandId } });
+            const newBrand = await prisma.brand.create({ data: { name: normalizedName } });
             brandId = newBrand.id;
         }
     }
@@ -187,13 +197,26 @@ export const updateOrder = async (req: Request, res: Response): Promise<any> => 
     // Brand Resolution (if updated)
     if (updates.brandId) {
        let bId = updates.brandId;
-       const bCheck = await prisma.brand.findUnique({ where: { id: bId } });
-       if (!bCheck) {
-           const bName = await prisma.brand.findUnique({ where: { name: bId } });
+       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(bId);
+
+       if (isUuid) {
+           const bCheck = await prisma.brand.findUnique({ where: { id: bId } });
+           if (!bCheck) {
+               // Fallback logic
+               const normalized = bId.trim();
+               const existing = await prisma.brand.findFirst({ where: { name: normalized } });
+               if (existing) bId = existing.id;
+               else {
+                   const newB = await prisma.brand.create({ data: { name: normalized } });
+                   bId = newB.id;
+               }
+           }
+       } else {
+           const normalized = bId.trim();
+           const bName = await prisma.brand.findFirst({ where: { name: normalized } });
            if (bName) bId = bName.id;
            else {
-               // Create if not exists (lazy)
-               const newB = await prisma.brand.create({ data: { name: bId } });
+               const newB = await prisma.brand.create({ data: { name: normalized } });
                bId = newB.id;
            }
        }

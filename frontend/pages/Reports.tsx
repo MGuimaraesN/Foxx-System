@@ -13,6 +13,7 @@ import { useTranslation } from '../services/i18n';
 
 export const Reports: React.FC = () => {
   const { t, language } = useTranslation();
+  const safeLanguage = language || 'pt-BR';
   const [orders, setOrders] = useState<ServiceOrder[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   
@@ -93,29 +94,42 @@ export const Reports: React.FC = () => {
   }, [orders, startDate, endDate, brandFilter, statusFilter]);
 
   const formatCurrency = (val: number) => 
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+    new Intl.NumberFormat(safeLanguage, { style: 'currency', currency: 'BRL' }).format(val);
 
   const generateExcel = async () => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Relatorio_Comissao");
 
+    // Define Columns with Styling Logic setup
     worksheet.columns = [
-      { header: "Data", key: "date", width: 15 },
-      { header: "Número da O.S", key: "osNumber", width: 15 },
-      { header: "Cliente", key: "customer", width: 30 },
-      { header: "Marca", key: "brand", width: 20 },
-      { header: "Comissão (R$)", key: "commission", width: 15 },
-      { header: "Status", key: "status", width: 15 },
+      { header: "Data", key: "date", width: 15, style: { alignment: { horizontal: 'center' } } },
+      { header: "Número da O.S", key: "osNumber", width: 15, style: { alignment: { horizontal: 'center' } } },
+      { header: "Cliente", key: "customer", width: 35 },
+      { header: "Marca", key: "brand", width: 20, style: { alignment: { horizontal: 'center' } } },
+      { header: "Valor (R$)", key: "service", width: 18, style: { numFmt: '"R$"#,##0.00' } },
+      { header: "Comissão (R$)", key: "commission", width: 18, style: { numFmt: '"R$"#,##0.00' } },
+      { header: "Status", key: "status", width: 15, style: { alignment: { horizontal: 'center' } } },
     ];
+
+    // Header Styling
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF6366F1' } // Indigo 500
+    };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
 
     reportData.forEach(o => {
       worksheet.addRow({
-        date: o.entryDate.split('T')[0],
+        date: new Date(o.entryDate).toLocaleDateString('pt-BR'),
         osNumber: o.osNumber,
         customer: o.customerName,
         brand: o.brand,
-        commission: o.commissionValue,
-        status: t(`status.${o.status}`),
+        service: Number(o.serviceValue),
+        commission: Number(o.commissionValue),
+        status: t(`status.${o.status}`).toUpperCase(),
       });
     });
 
@@ -125,6 +139,8 @@ export const Reports: React.FC = () => {
         commission: totals.commission
     });
     totalRow.font = { bold: true };
+    totalRow.getCell('commission').numFmt = '"R$"#,##0.00';
+    totalRow.getCell('date').alignment = { horizontal: 'right' };
 
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
@@ -144,6 +160,13 @@ export const Reports: React.FC = () => {
     
     // Header Section
     let cursorY = 20;
+
+    const primaryColorHex = settings.primaryColor || '#6366f1';
+
+    // Header Line with Primary Color
+    doc.setDrawColor(primaryColorHex);
+    doc.setLineWidth(1.5);
+    doc.line(marginLeft, cursorY - 8, pageWidth - marginRight, cursorY - 8);
 
     // Company Name (Left)
     doc.setFontSize(14);
@@ -176,14 +199,14 @@ export const Reports: React.FC = () => {
     doc.text(`Período: ${periodText}`, pageWidth - marginRight, titleY + 6, { align: 'right' });
 
     // Generated At (Right)
-    const genDate = new Date().toLocaleString(language);
+    const genDate = new Date().toLocaleString(safeLanguage);
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
     doc.text(`Gerado em: ${genDate}`, pageWidth - marginRight, titleY + 11, { align: 'right' });
 
     // Divider
     cursorY = Math.max(cursorY, titleY + 11) + 8;
-    doc.setDrawColor(200, 200, 200);
+    doc.setDrawColor(primaryColorHex);
     doc.setLineWidth(0.5);
     doc.line(marginLeft, cursorY, pageWidth - marginRight, cursorY);
     
@@ -225,7 +248,7 @@ export const Reports: React.FC = () => {
         }
 
         const tableBody = finalData.map(o => [
-            new Date(o.entryDate).toLocaleDateString('pt-BR'),
+            new Date(o.entryDate).toLocaleDateString(safeLanguage),
             o.osNumber.toString(),
             o.customerName,
             o.brand,
@@ -272,10 +295,10 @@ export const Reports: React.FC = () => {
                 overflow: 'visible' // Prevent truncation logic
             },
             headStyles: {
-                fillColor: [50, 50, 50], // Dark gray header
+                fillColor: primaryColorHex,
                 textColor: 255,
                 fontStyle: 'bold',
-                halign: 'left',
+                halign: 'center', // Centered headers
                 cellPadding: 4
             },
             footStyles: {
@@ -285,10 +308,10 @@ export const Reports: React.FC = () => {
                 lineWidth: { top: 0.1 }
             },
             columnStyles: {
-                0: { cellWidth: 22, halign: 'left' }, // Data
-                1: { cellWidth: 28, halign: 'left' }, // Número da O.S
+                0: { cellWidth: 22, halign: 'center' }, // Data (Centered)
+                1: { cellWidth: 28, halign: 'center' }, // Número da O.S (Centered)
                 2: { cellWidth: 'auto', halign: 'left' }, // Cliente
-                3: { cellWidth: 25, halign: 'left' }, // Marca
+                3: { cellWidth: 25, halign: 'center' }, // Marca (Centered)
                 4: { cellWidth: 28, halign: 'right' }, // Valor (R$)
                 5: { cellWidth: 28, halign: 'right' }, // Comissão (R$)
                 6: { cellWidth: 25, halign: 'center' } // Status

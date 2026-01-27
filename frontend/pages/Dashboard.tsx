@@ -77,8 +77,9 @@ export const Dashboard: React.FC = () => {
   const [bestPeriod, setBestPeriod] = useState<Period | null>(null);
 
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
+  const safeLanguage = language || 'pt-BR';
 
   useEffect(() => {
     const loadData = async () => {
@@ -169,7 +170,7 @@ export const Dashboard: React.FC = () => {
   const COLORS = ['#6366f1', '#10b981'];
 
   const formatCurrency = (val: number) => 
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+    new Intl.NumberFormat(safeLanguage, { style: 'currency', currency: 'BRL' }).format(val);
 
   const isDark = theme === 'dark';
 
@@ -215,7 +216,7 @@ export const Dashboard: React.FC = () => {
         <StatCard 
           title={t('dashboard.bestPeriod')}
           value={bestPeriod ? formatCurrency(bestPeriod.totalCommission) : '-'} 
-          subValue={bestPeriod ? `${new Date(bestPeriod.startDate).toLocaleDateString(language)} → ${new Date(bestPeriod.endDate).toLocaleDateString(language)}` : t('dashboard.noDataYet')}
+          subValue={bestPeriod ? `${new Date(bestPeriod.startDate).toLocaleDateString(safeLanguage)} → ${new Date(bestPeriod.endDate).toLocaleDateString(safeLanguage)}` : t('dashboard.noDataYet')}
           icon={Trophy} 
           color="text-amber-500" 
           variant="highlight"
@@ -284,6 +285,7 @@ export const Dashboard: React.FC = () => {
                       boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
                     }}
                     itemStyle={{ color: isDark ? '#e2e8f0' : '#334155', fontWeight: 600 }}
+                    formatter={(value: number) => formatCurrency(value)}
                 />
                 <Area 
                     type="monotone" 
