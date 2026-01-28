@@ -35,12 +35,13 @@ CREATE TABLE "ServiceOrder" (
     "commissionValue" DECIMAL NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'PENDING',
     "paymentMethod" TEXT,
+    "description" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "paidAt" DATETIME,
     "brandId" TEXT NOT NULL,
-    "periodId" TEXT NOT NULL,
+    "periodId" TEXT,
     CONSTRAINT "ServiceOrder_brandId_fkey" FOREIGN KEY ("brandId") REFERENCES "Brand" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "ServiceOrder_periodId_fkey" FOREIGN KEY ("periodId") REFERENCES "Period" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "ServiceOrder_periodId_fkey" FOREIGN KEY ("periodId") REFERENCES "Period" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- CreateTable

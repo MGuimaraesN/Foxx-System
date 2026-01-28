@@ -1,14 +1,15 @@
 {
   "name": "Commission-System-Backend",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/server.ts",
     "build": "tsc",
+    "prisma:dev": "prisma generate && prisma migrate dev && ts-node src/seed.ts",
+    "prisma:start": "prisma generate && prisma migrate deploy",
     "start": "node dist/server.js",
     "seed": "ts-node src/seed.ts",
-    "postinstall": "prisma generate && prisma migrate dev && ts-node src/seed.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -17,25 +18,29 @@
   "type": "commonjs",
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.3.0",
-    "@prisma/client": "^7.3.0",
     "@prisma/config": "^7.3.0",
     "better-sqlite3": "^12.6.2",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "glob": "^13.0.0",
-    "inflight": "^1.0.6",
-    "prisma": "^7.3.0",
     "rimraf": "^6.1.2",
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@prisma/client": "^7.3.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.0.10",
     "nodemon": "^3.1.11",
+    "prisma": "^7.3.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "inflight": "lru-cache",
+    "hono": "latest",
+    "lodash": "latest"
   }
 }

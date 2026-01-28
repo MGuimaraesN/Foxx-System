@@ -354,7 +354,7 @@ export const Reports: React.FC = () => {
                 doc.setFontSize(8);
                 doc.setTextColor(150, 150, 150);
                 
-                const sysName = "Commission System";
+                const sysName = import.meta.env.VITE_APP_NAME || "Commission System";
                 doc.text(sysName, marginLeft, doc.internal.pageSize.height - 10);
                 
                 doc.text(
