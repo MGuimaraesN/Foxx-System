@@ -107,6 +107,7 @@ const dictionary = {
       noPeriods: "Nenhum período ainda",
       noPeriodsMsg: "Períodos são gerados automaticamente ao criar a primeira ordem de serviço.",
       confirmClose: "Fechar este período irá bloquear todas as ordens associadas e marcá-las como PAGO. Continuar?",
+      confirmDelete: "Deseja realmente excluir este período? As ordens vinculadas voltarão a ficar pendentes.",
       startDate: "Data Início",
       endDate: "Data Fim"
     },
@@ -290,6 +291,7 @@ const dictionary = {
       noPeriods: "No periods yet",
       noPeriodsMsg: "Periods are automatically generated when you create your first service order.",
       confirmClose: "Closing this period will lock all associated orders and mark them as PAID. This cannot be undone. Continue?",
+      confirmDelete: "Are you sure you want to delete this period? Associated orders will be set back to pending.",
       startDate: "Start Date",
       endDate: "End Date",
     },

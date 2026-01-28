@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle, Lock, Calendar, DollarSign, AlertTriangle, Edit2, Plus, X } from 'lucide-react';
+import { CheckCircle, Lock, Calendar, DollarSign, AlertTriangle, Edit2, Trash2, Plus, X } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { getPeriods, markPeriodAsPaid, initializeData, createPeriod, updatePeriod } from '../services/dataService';
+import { getPeriods, markPeriodAsPaid, initializeData, createPeriod, updatePeriod, deletePeriod } from '../services/dataService';
 import { Period } from '../types';
 import { useTranslation } from '../services/i18n';
 
@@ -37,6 +37,17 @@ export const Periods: React.FC = () => {
         alert(error.message || "Error closing period");
       }
     }
+  };
+
+  const handleDelete = async (id: string) => {
+      if (confirm(t('periods.confirmDelete'))) {
+          try {
+              await deletePeriod(id);
+              refreshPeriods();
+          } catch (error: any) {
+              alert(error.message || "Error deleting period");
+          }
+      }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -123,11 +134,16 @@ export const Periods: React.FC = () => {
                     </p>
                   </div>
                </div>
-               <div className="flex gap-2">
+               <div className="flex gap-3">
                    {!period.paid && (
+                    <>
                        <button onClick={() => openEdit(period)} className="text-slate-400 hover:text-indigo-500 transition-colors">
                            <Edit2 size={16} />
                        </button>
+                        <button onClick={() => handleDelete(period.id)} className="text-slate-400 hover:text-red-500 transition-colors">
+                           <Trash2 size={16} />
+                       </button>
+                    </>
                    )}
                    {period.paid && <Lock size={18} className="text-slate-400 dark:text-slate-500" />}
                </div>

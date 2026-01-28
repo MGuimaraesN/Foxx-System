@@ -62,6 +62,16 @@ export const updatePeriod = async (id: string, updates: { startDate?: string, en
     return res.json();
 };
 
+export const deletePeriod = async (id: string) => {
+    const res = await fetch(`${API_URL}/periods/${id}`, { 
+        method: 'DELETE' 
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to delete period');
+    }
+};
+
 // --- Orders ---
 
 export const getOrders = async (): Promise<ServiceOrder[]> => {
