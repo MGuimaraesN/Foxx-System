@@ -109,7 +109,7 @@ export const Layout = ({ children }: LayoutProps) => {
                  A
               </div>
               <div className="overflow-hidden">
-                  <p className="text-sm font-semibold text-slate-800 dark:text-white truncate">Admin</p>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-white truncate">Mateus</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{t('common.authenticated')}</p>
               </div>
            </div>
