@@ -33,6 +33,7 @@ model Period {
   orders            ServiceOrder[]
 
   @@unique([startDate, endDate])
+  @@index([startDate, endDate])
 }
 
 model ServiceOrder {
@@ -52,6 +53,11 @@ model ServiceOrder {
   periodId        String?
   period          Period?    @relation(fields: [periodId], references: [id])
   auditLogs       AuditLog[]
+
+  @@index([entryDate])
+  @@index([status])
+  @@index([brandId])
+  @@index([periodId])
 }
 
 model AuditLog {
@@ -63,6 +69,9 @@ model AuditLog {
   user           User?         @relation(fields: [userId], references: [id])
   serviceOrderId String?
   serviceOrder   ServiceOrder? @relation(fields: [serviceOrderId], references: [id])
+
+  @@index([serviceOrderId])
+  @@index([timestamp])
 }
 
 model Settings {
