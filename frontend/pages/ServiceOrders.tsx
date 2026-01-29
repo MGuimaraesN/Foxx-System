@@ -206,7 +206,7 @@ export const ServiceOrders: React.FC = () => {
 
       const payload = {
         osNumber: parseInt(formData.osNumber),
-        entryDate: formData.entryDate,
+        entryDate: new Date(formData.entryDate).toISOString(),
         customerName: formData.customerName,
         brand: formData.brand,
         serviceValue: val,
@@ -770,7 +770,7 @@ export const ServiceOrders: React.FC = () => {
                              <button 
                                 onClick={() => handleDuplicate(order.id)}
                                 className="p-1.5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg text-slate-400 hover:text-indigo-400 transition-colors"
-                                title="Duplicate"
+                                title={t('common.duplicate')}
                             >
                                 <Copy size={16} />
                             </button>

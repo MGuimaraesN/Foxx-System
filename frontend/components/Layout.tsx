@@ -78,13 +78,6 @@ export const Layout = ({ children }: LayoutProps) => {
     };
     
     fetchPending();
-    // window.addEventListener('storage', fetchPending); // localStorage listener no longer applies with API
-    const interval = setInterval(fetchPending, 10000); // Poll every 10s instead of 2s to save resources
-
-    return () => {
-        // window.removeEventListener('storage', fetchPending);
-        clearInterval(interval);
-    };
   }, []);
 
   return (

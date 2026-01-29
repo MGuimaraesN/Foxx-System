@@ -109,6 +109,25 @@ export const updateOrder = async (req: Request, res: Response): Promise<any> => 
         where: { id },
         include: { period: true }
     });
+
+    let brandId = updates.brandId;
+    if (brandId) {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(brandId);
+
+      if (isUuid) {
+          const brandCheck = await prisma.brand.findUnique({ where: { id: brandId } });
+          if (!brandCheck) {
+              const normalizedName = brandId.trim();
+              const existing = await prisma.brand.findUnique({ where: { name: normalizedName } });
+              brandId = existing ? existing.id : (await prisma.brand.create({ data: { name: normalizedName } })).id;
+          }
+      } else {
+          const normalizedName = brandId.trim();
+          const brandByName = await prisma.brand.findFirst({ where: { name: normalizedName } });
+          brandId = brandByName ? brandByName.id : (await prisma.brand.create({ data: { name: normalizedName } })).id;
+      }
+      updates.brandId = brandId;
+    }
     
     if (!existingOrder || !existingOrder.period) return res.status(404).json({ error: "Order or period not found" });
     if (existingOrder.status === 'PAID' || existingOrder.period.paid) {
