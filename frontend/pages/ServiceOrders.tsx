@@ -148,7 +148,6 @@ export const ServiceOrders: React.FC = () => {
         setOrders(ordersData);
         setBrandsList(brandsData);
         setSelectedIds(new Set());
-        console.log("PAssa aquiiI");
     } catch (e) {
         console.error(e);
     }
