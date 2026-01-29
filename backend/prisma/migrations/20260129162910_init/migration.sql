@@ -75,7 +75,28 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 CREATE UNIQUE INDEX "Brand_name_key" ON "Brand"("name");
 
 -- CreateIndex
+CREATE INDEX "Period_startDate_endDate_idx" ON "Period"("startDate", "endDate");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Period_startDate_endDate_key" ON "Period"("startDate", "endDate");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ServiceOrder_osNumber_key" ON "ServiceOrder"("osNumber");
+
+-- CreateIndex
+CREATE INDEX "ServiceOrder_entryDate_idx" ON "ServiceOrder"("entryDate");
+
+-- CreateIndex
+CREATE INDEX "ServiceOrder_status_idx" ON "ServiceOrder"("status");
+
+-- CreateIndex
+CREATE INDEX "ServiceOrder_brandId_idx" ON "ServiceOrder"("brandId");
+
+-- CreateIndex
+CREATE INDEX "ServiceOrder_periodId_idx" ON "ServiceOrder"("periodId");
+
+-- CreateIndex
+CREATE INDEX "AuditLog_serviceOrderId_idx" ON "AuditLog"("serviceOrderId");
+
+-- CreateIndex
+CREATE INDEX "AuditLog_timestamp_idx" ON "AuditLog"("timestamp");
