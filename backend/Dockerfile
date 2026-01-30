@@ -1,5 +1,5 @@
 # Etapa 1: Build
-FROM node:20-alpine AS builder
+FROM node:25-alpine AS builder
 
 WORKDIR /app
 
@@ -13,12 +13,12 @@ RUN npm ci
 # Copiar o resto do código fonte
 COPY . .
 
-# Gerar o cliente Prisma e fazer o build do TypeScript
+# Fazer o build do TypeScript e gerar cliente Prisma
 RUN npx prisma generate
 RUN npm run build
 
 # Etapa 2: Runner (Imagem final mais leve)
-FROM node:20-alpine
+FROM node:25-alpine
 
 WORKDIR /app
 
@@ -26,15 +26,21 @@ WORKDIR /app
 RUN apk -U add --no-cache openssl
 
 COPY package*.json ./
-# Instalar apenas dependências de produção
-RUN npm ci --omit=dev
+
+# Instalar dependências
+RUN npm ci
 
 # Copiar arquivos construídos da etapa anterior
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/prisma ./prisma
+COPY  /prisma ./prisma
+COPY prisma.config.ts ./
+COPY .env ./
+
+# Gerar cliente Prisma e aplicar migrações
+RUN npx prisma generate
 
 # Expor a porta definida no .env ou padrão
 EXPOSE 3020
 
 # Script de inicialização para rodar migrações e depois o servidor
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy &&node dist/server.js"]

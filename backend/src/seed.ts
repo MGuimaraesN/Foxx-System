@@ -56,7 +56,7 @@ async function main() {
   await prisma.settings.create({
     data: {
       fixedCommissionPercentage: 10,
-      companyName: 'Commission System Pro',
+      companyName: 'Foxx System Pro',
     },
   });
 

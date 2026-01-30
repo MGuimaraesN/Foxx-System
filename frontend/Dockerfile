@@ -1,5 +1,5 @@
 # Etapa 1: Build do React
-FROM node:20-alpine AS builder
+FROM node:25-alpine AS builder
 
 WORKDIR /app
 
@@ -7,10 +7,13 @@ WORKDIR /app
 ENV VITE_API_URL=/api
 
 COPY package*.json ./
+
+# Instalar dependências
 RUN npm ci
 
 COPY . .
 
+# Fazer o build do React
 RUN npm run build
 
 # Etapa 2: Servidor Nginx

@@ -1,4 +1,4 @@
-# Commission System
+# Foxx System
 
 A modern Commission Management System built with a robust client-server architecture.
 

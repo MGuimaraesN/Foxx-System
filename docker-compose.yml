@@ -1,21 +1,17 @@
 services:
   backend:
     build: ./backend
-    container_name: commission-backend
+    container_name: foxx-system-api
     restart: always
     ports:
       - "3020:3020"
-    environment:
-      - PORT=3020
-      # Aponta o SQLite para um volume persistente dentro do container
-      - DATABASE_URL=file:/app/data/prod.db
     volumes:
       # Persistência do banco de dados SQLite
-      - sqlite_data:/app/data
+      - sqlite_data:/app
 
   frontend:
     build: ./frontend
-    container_name: commission-frontend
+    container_name: foxx-system-web
     restart: always
     ports:
       - "3000:80" # Acessar no navegador via localhost:3000

@@ -207,7 +207,7 @@ export const Reports: React.FC = () => {
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(30, 30, 30);
-    const systemName = (settings.companyName || import.meta.env.VITE_APP_NAME || "Commission System").toUpperCase();
+    const systemName = (settings.companyName || import.meta.env.VITE_APP_NAME).toUpperCase();
     doc.text(systemName, marginLeft, cursorY);
     
     // CNPJ (Left)
@@ -401,7 +401,7 @@ export const Reports: React.FC = () => {
                 doc.setFontSize(8);
                 doc.setTextColor(150, 150, 150);
                 
-                const sysName = import.meta.env.VITE_APP_NAME || "Commission System";
+                const sysName = import.meta.env.VITE_APP_NAME;
                 doc.text(sysName, marginLeft, doc.internal.pageSize.height - 10);
                 
                 doc.text(

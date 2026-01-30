@@ -54,6 +54,8 @@ export const Layout = ({ children }: LayoutProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const [pendingCount, setPendingCount] = useState(0);
+  const sysName = import.meta.env.VITE_APP_NAME;
+
 
   const toggleLanguage = () => {
     setLanguage(language === 'pt-BR' ? 'en-US' : 'pt-BR');
@@ -89,7 +91,7 @@ export const Layout = ({ children }: LayoutProps) => {
             <CreditCard className="text-white" size={20} />
           </div>
           <div>
-            <h1 className="font-bold text-lg text-slate-800 dark:text-white tracking-tight leading-tight">Commission<br/>System</h1>
+            <h1 className="font-bold text-lg text-slate-800 dark:text-white tracking-tight leading-tight">{sysName}</h1>
           </div>
         </div>
 
