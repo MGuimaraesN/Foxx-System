@@ -1,5 +1,5 @@
 {
   "name": "Foxx System",
-  "description": "A premium, dark-themed fintech-style dashboard for managing service orders and commissions with automatic period calculation.",
+  "description": "Complete work order management and commission control system, developed with Node.js, React, TypeScript, and SQLite via Prisma. Includes dashboards, brand control, audit logs, and backup export.",
   "requestFramePermissions": []
 }
