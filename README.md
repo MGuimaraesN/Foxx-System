@@ -109,7 +109,7 @@ O projeto utiliza uma stack moderna baseada em TypeScript para garantir consist√
 1.  **Clonar e Preparar**:
     
     ```
-    git clone [https://github.com/mguimaraesn/foxx-system.git](https://github.com/mguimaraesn/foxx-system.git)
+    git clone https://github.com/mguimaraesn/foxx-system.git
     cd foxx-system
     ```
     
