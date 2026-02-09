@@ -741,9 +741,11 @@ export const ServiceOrders: React.FC = () => {
                         {order.paidAt && <span className="block text-[10px] text-emerald-500">{t('orders.paidOn')}: {order.paidAt.split('T')[0]}</span>}
                     </td>
                     <td className="px-4 py-4 font-medium text-slate-900 dark:text-white whitespace-nowrap">#{order.osNumber}</td>
-                    <td className="px-4 py-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">
-                        {order.customerName}
-                        {order.paymentMethod && <span className="block text-[10px] text-slate-400">{order.paymentMethod}</span>}
+                    <td className="px-4 py-4 text-slate-600 dark:text-slate-300 min-w-[150px] max-w-[300px]">
+                        <div className="break-words whitespace-normal leading-tight">
+                            {order.customerName}
+                        </div>
+                        {order.paymentMethod && <span className="block text-[10px] text-slate-400 mt-1">{order.paymentMethod}</span>}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                         <span className="inline-flex items-center px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-white/5 text-xs text-slate-600 dark:text-slate-300">
