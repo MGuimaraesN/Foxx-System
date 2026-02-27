@@ -20,3 +20,8 @@ export const updateOrderSchema = z.object({
   description: z.string().optional(),
   status: z.enum(['PENDING', 'PAID']).optional(),
 });
+
+export const bulkUpdateOrderSchema = z.object({
+  ids: z.array(z.string()).min(1),
+  status: z.enum(['PENDING', 'PAID']),
+});

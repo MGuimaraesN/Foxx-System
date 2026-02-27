@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { Prisma } from '@prisma/client';
 import { prisma } from '../db';
-import { createOrderSchema, updateOrderSchema } from '../schemas';
+import { createOrderSchema, updateOrderSchema, bulkUpdateOrderSchema } from '../schemas';
 import { getBiWeeklyPeriodRange } from '../utils/period.utils';
 
 // Helper para garantir que o período existe
@@ -247,7 +247,7 @@ export const deleteOrder = async (req: Request, res: Response): Promise<any> => 
 export const duplicateOrder = async (req: Request, res: Response): Promise<any> => {
     const { id } = req.params;
     try {
-        const original = await prisma.serviceOrder.findUnique({ where: { id } });
+        const original = await prisma.serviceOrder.findUnique({ where: { id: id as string } });
         if (!original) return res.status(404).json({ error: "Order not found" });
 
         // Find next OS Number logic: Max OS Number in the system + 1
@@ -292,10 +292,12 @@ export const duplicateOrder = async (req: Request, res: Response): Promise<any> 
 };
 
 export const bulkUpdateOrders = async (req: Request, res: Response): Promise<any> => {
-    const { ids, status } = req.body;
-    if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: "IDs array required" });
-
     try {
+        const validation = bulkUpdateOrderSchema.safeParse(req.body);
+        if (!validation.success) return res.status(400).json({ error: validation.error });
+
+        const { ids, status } = validation.data;
+
         // CORREÇÃO: Respeitar validações do update individual
         // 1. Buscar todas as ordens alvo
         const targetOrders = await prisma.serviceOrder.findMany({
