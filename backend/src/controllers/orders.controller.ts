@@ -242,4 +242,105 @@ export const deleteOrder = async (req: Request, res: Response): Promise<any> => 
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }
-}
+};
+
+export const duplicateOrder = async (req: Request, res: Response): Promise<any> => {
+    const { id } = req.params;
+    try {
+        const original = await prisma.serviceOrder.findUnique({ where: { id } });
+        if (!original) return res.status(404).json({ error: "Order not found" });
+
+        // Find next OS Number logic: Max OS Number in the system + 1
+        const maxOs = await prisma.serviceOrder.aggregate({
+            _max: { osNumber: true }
+        });
+
+        const nextOsNumber = (maxOs._max.osNumber || 1000) + 1;
+        const now = new Date();
+        const entryDateStr = now.toISOString().split('T')[0];
+
+        // Ensure period exists for today
+        const period = await ensurePeriodExists(entryDateStr);
+        if (period.paid) return res.status(400).json({ error: "Current period is paid/closed." });
+
+        const newOrder = await prisma.serviceOrder.create({
+            data: {
+                osNumber: nextOsNumber,
+                entryDate: now,
+                customerName: original.customerName,
+                serviceValue: original.serviceValue,
+                commissionValue: original.commissionValue,
+                status: 'PENDING',
+                paymentMethod: original.paymentMethod,
+                description: original.description,
+                brandId: original.brandId,
+                periodId: period.id,
+                auditLogs: {
+                    create: {
+                        action: 'DUPLICATED',
+                        details: `Duplicated from order #${original.osNumber}`
+                    }
+                }
+            }
+        });
+
+        await recalculatePeriodTotals(period.id);
+        return res.status(201).json(newOrder);
+    } catch (e: any) {
+        return res.status(500).json({ error: e.message });
+    }
+};
+
+export const bulkUpdateOrders = async (req: Request, res: Response): Promise<any> => {
+    const { ids, status } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: "IDs array required" });
+
+    try {
+        // Find affected periods before update to recalculate later
+        const affectedOrders = await prisma.serviceOrder.findMany({
+            where: { id: { in: ids } },
+            select: { periodId: true }
+        });
+        const periodIds = [...new Set(affectedOrders.map(o => o.periodId))];
+
+        await prisma.serviceOrder.updateMany({
+            where: { id: { in: ids } },
+            data: { status }
+        });
+
+        // Recalculate totals for all affected periods
+        await Promise.all(periodIds.map(pid => pid && recalculatePeriodTotals(pid)));
+
+        res.json({ success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+};
+
+export const bulkDeleteOrders = async (req: Request, res: Response): Promise<any> => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: "IDs array required" });
+
+    try {
+        const affectedOrders = await prisma.serviceOrder.findMany({
+            where: { id: { in: ids } },
+            select: { periodId: true }
+        });
+        const periodIds = [...new Set(affectedOrders.map(o => o.periodId))];
+
+        // Delete audit logs first due to FK constraints
+        await prisma.auditLog.deleteMany({
+            where: { serviceOrderId: { in: ids } }
+        });
+
+        await prisma.serviceOrder.deleteMany({
+            where: { id: { in: ids } }
+        });
+
+        await Promise.all(periodIds.map(pid => pid && recalculatePeriodTotals(pid)));
+
+        res.json({ success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+};

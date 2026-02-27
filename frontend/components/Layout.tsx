@@ -69,12 +69,16 @@ export const Layout = () => {
         const count = await getPendingOrderCount();
         setPendingCount(count);
       } catch (error) {
-        // Silently fail for badge count updates to avoid blocking UI
         console.warn("Failed to fetch pending count", error);
       }
     };
     
     fetchPending();
+
+    // Listen for global updates to refresh badge
+    const handleUpdate = () => fetchPending();
+    window.addEventListener('orders-updated', handleUpdate);
+    return () => window.removeEventListener('orders-updated', handleUpdate);
   }, []);
 
   return (

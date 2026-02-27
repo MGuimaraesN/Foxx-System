@@ -3,7 +3,7 @@ import { Plus, Search, Trash2, Edit2, AlertCircle, Download, Filter, X, CheckCir
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { createOrder, getOrders, getSettings, updateOrder, deleteOrder, getBrands, updateOrderStatus, bulkUpdateOrderStatus, bulkDeleteOrders, duplicateOrder, addBrand, getAuditLogs } from '../services/dataService';
+import { createOrder, getOrders, getSettings, updateOrder, deleteOrder, getBrands, updateOrderStatus, bulkUpdateOrderStatus, bulkDeleteOrders, duplicateOrder, addBrand, getAuditLogs, notifyOrdersUpdated } from '../services/dataService';
 import { ServiceOrder, Brand, AuditLogEntry, AppSettings } from '../types';
 import { useTranslation } from '../services/i18n';
 
@@ -218,6 +218,7 @@ export const ServiceOrders: React.FC = () => {
       }
       
       await refreshData();
+      notifyOrdersUpdated();
       resetForm();
     } catch (err: any) {
       setError(err.message || 'Error saving order');
@@ -251,6 +252,7 @@ export const ServiceOrders: React.FC = () => {
       try {
           await duplicateOrder(id);
           await refreshData();
+          notifyOrdersUpdated();
       } catch (e: any) {
           alert(e.message || 'Error duplicating order');
       }
@@ -273,6 +275,7 @@ export const ServiceOrders: React.FC = () => {
         try {
             await updateOrderStatus(order.id, 'PAID');
             await refreshData();
+            notifyOrdersUpdated();
         } catch (e: any) {
             alert(e.message || 'Error updating status');
         }
@@ -287,6 +290,7 @@ export const ServiceOrders: React.FC = () => {
          await deleteOrder(deleteConfirm.id);
       }
       await refreshData();
+      notifyOrdersUpdated();
     } catch (e: any) {
       alert(e.message || 'Error deleting');
     }
@@ -314,6 +318,7 @@ export const ServiceOrders: React.FC = () => {
           try {
              await bulkUpdateOrderStatus(Array.from(selectedIds), 'PAID');
              await refreshData();
+             notifyOrdersUpdated();
           } catch(e: any) {
               alert(e.message || 'Error bulk updating');
           }

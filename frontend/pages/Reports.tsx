@@ -58,7 +58,8 @@ export const Reports: React.FC = () => {
   }
 
   useEffect(() => {
-    let result = orders;
+    // Clone array to avoid mutation
+    let result = [...orders];
 
     // Date Range
     if (startDate) {
