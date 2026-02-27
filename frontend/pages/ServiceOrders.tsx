@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Plus, Search, Trash2, Edit2, AlertCircle, Download, Filter, X, CheckCircle, DollarSign, CheckSquare, Square, Copy, History, CreditCard, Clock, FileText, Tag } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -8,7 +8,8 @@ import { ServiceOrder, Brand, AuditLogEntry, AppSettings } from '../types';
 import { useTranslation } from '../services/i18n';
 
 export const ServiceOrders: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const safeLanguage = language || 'pt-BR';
   const [orders, setOrders] = useState<ServiceOrder[]>([]);
   
   // Search & Filter State
@@ -375,8 +376,12 @@ export const ServiceOrders: React.FC = () => {
       }
   };
 
-  const formatCurrency = (val: number) => 
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+  // MICRO-OPTIMIZATION: Memoize formatCurrency to avoid recreating it on every render
+  // Safe change as it only depends on safeLanguage
+  const formatCurrency = useCallback((val: number) =>
+    new Intl.NumberFormat(safeLanguage, { style: 'currency', currency: 'BRL' }).format(val),
+    [safeLanguage]
+  );
 
   const getHistoryColor = (action: string) => {
       if (action.includes('CREATED')) return 'bg-emerald-500';

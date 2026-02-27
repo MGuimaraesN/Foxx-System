@@ -296,22 +296,50 @@ export const bulkUpdateOrders = async (req: Request, res: Response): Promise<any
     if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: "IDs array required" });
 
     try {
-        // Find affected periods before update to recalculate later
-        const affectedOrders = await prisma.serviceOrder.findMany({
+        // CORREÇÃO: Respeitar validações do update individual
+        // 1. Buscar todas as ordens alvo
+        const targetOrders = await prisma.serviceOrder.findMany({
             where: { id: { in: ids } },
-            select: { periodId: true }
-        });
-        const periodIds = [...new Set(affectedOrders.map(o => o.periodId))];
-
-        await prisma.serviceOrder.updateMany({
-            where: { id: { in: ids } },
-            data: { status }
+            include: { period: true }
         });
 
-        // Recalculate totals for all affected periods
-        await Promise.all(periodIds.map(pid => pid && recalculatePeriodTotals(pid)));
+        const validIds: string[] = [];
+        const periodIds = new Set<string>();
 
-        res.json({ success: true });
+        // 2. Filtrar apenas as válidas (não PAGO, período não pago)
+        for (const order of targetOrders) {
+            if (order.status === 'PAID') continue; // Já pago, não muda
+            if (order.period?.paid) continue; // Período pago, bloqueado
+
+            validIds.push(order.id);
+            if (order.periodId) periodIds.add(order.periodId);
+        }
+
+        if (validIds.length === 0) {
+            return res.json({ success: true, message: "No applicable orders to update" });
+        }
+
+        // 3. Executar updates em transação para garantir audit logs
+        await prisma.$transaction(
+            validIds.flatMap(id => [
+                prisma.serviceOrder.update({
+                    where: { id },
+                    data: { status }
+                }),
+                prisma.auditLog.create({
+                    data: {
+                        serviceOrderId: id,
+                        action: 'BULK_UPDATE',
+                        details: `Status updated to ${status} via bulk action`
+                    }
+                })
+            ])
+        );
+
+        // 4. Recalcular períodos afetados
+        await Promise.all(Array.from(periodIds).map(pid => recalculatePeriodTotals(pid)));
+
+        res.json({ success: true, count: validIds.length });
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }
@@ -322,24 +350,39 @@ export const bulkDeleteOrders = async (req: Request, res: Response): Promise<any
     if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: "IDs array required" });
 
     try {
-        const affectedOrders = await prisma.serviceOrder.findMany({
+        // CORREÇÃO: Respeitar validações do delete individual
+        const targetOrders = await prisma.serviceOrder.findMany({
             where: { id: { in: ids } },
-            select: { periodId: true }
+            include: { period: true }
         });
-        const periodIds = [...new Set(affectedOrders.map(o => o.periodId))];
+
+        const validIds: string[] = [];
+        const periodIds = new Set<string>();
+
+        for (const order of targetOrders) {
+            if (order.status === 'PAID') continue; // Pago não pode deletar
+            if (order.period?.paid) continue; // Período pago não pode deletar
+
+            validIds.push(order.id);
+            if (order.periodId) periodIds.add(order.periodId);
+        }
+
+        if (validIds.length === 0) {
+            return res.json({ success: true, message: "No applicable orders to delete" });
+        }
 
         // Delete audit logs first due to FK constraints
         await prisma.auditLog.deleteMany({
-            where: { serviceOrderId: { in: ids } }
+            where: { serviceOrderId: { in: validIds } }
         });
 
         await prisma.serviceOrder.deleteMany({
-            where: { id: { in: ids } }
+            where: { id: { in: validIds } }
         });
 
-        await Promise.all(periodIds.map(pid => pid && recalculatePeriodTotals(pid)));
+        await Promise.all(Array.from(periodIds).map(pid => recalculatePeriodTotals(pid)));
 
-        res.json({ success: true });
+        res.json({ success: true, count: validIds.length });
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }
