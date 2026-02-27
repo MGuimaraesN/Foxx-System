@@ -170,10 +170,36 @@ export const updateOrder = async (req: Request, res: Response): Promise<any> => 
   }
 };
 
-// OTIMIZAÇÃO: Não incluir logs de auditoria na listagem principal
+// OTIMIZAÇÃO: Usar select para buscar apenas campos necessários
 export const getOrders = async (req: Request, res: Response) => {
     const orders = await prisma.serviceOrder.findMany({
-        include: { brand: true, period: true },
+        select: {
+            id: true,
+            osNumber: true,
+            customerName: true,
+            serviceValue: true,
+            commissionValue: true,
+            status: true,
+            entryDate: true,
+            paymentMethod: true,
+            paidAt: true,
+            description: true, // Needed for edit form pre-fill
+            brandId: true,
+            periodId: true,
+            brand: {
+                select: {
+                    name: true
+                }
+            },
+            period: {
+                select: {
+                    id: true,
+                    paid: true,
+                    startDate: true,
+                    endDate: true
+                }
+            }
+        },
         orderBy: { entryDate: 'desc' },
         take: 500 // Limite de segurança para performance
     });
@@ -181,10 +207,21 @@ export const getOrders = async (req: Request, res: Response) => {
     const mapped = orders.map((o: any) => ({
         ...o,
         brand: o.brand.name,
-        brandId: o.brandId,
-        history: [] // Retornar vazio para reduzir tamanho do JSON
+        // brandId e periodId já estão no objeto raiz do select
+        history: [] // Retornar vazio para consistência
     }));
     res.json(mapped);
+};
+
+export const getPendingCount = async (req: Request, res: Response) => {
+    try {
+        const count = await prisma.serviceOrder.count({
+            where: { status: 'PENDING' }
+        });
+        res.json({ count });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
 };
 
 export const deleteOrder = async (req: Request, res: Response): Promise<any> => {

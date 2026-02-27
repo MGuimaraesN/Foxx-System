@@ -95,6 +95,13 @@ export const getOrders = async (): Promise<ServiceOrder[]> => {
   return res.json();
 };
 
+export const getPendingOrderCount = async (): Promise<number> => {
+  const res = await fetch(`${API_URL}/orders/pending-count`);
+  if (!res.ok) throw new Error('Failed to fetch pending count');
+  const data = await res.json();
+  return data.count;
+};
+
 export const createOrder = async (order: Omit<ServiceOrder, 'id' | 'createdAt' | 'commissionValue' | 'status' | 'periodId'>) => {
   // Frontend might pass brand as name in 'brand' field, but backend expects 'brandId' or 'brandName' logic.
   // My backend checks 'brandId' field for Name or UUID.
@@ -227,17 +234,21 @@ export const deleteBrand = async (id: string) => {
 
 // --- Dashboard / Analytics ---
 
-export const getMonthlyStats = async () => {
+export const getDashboardData = async () => {
     const res = await fetch(`${API_URL}/dashboard`);
     if (!res.ok) throw new Error('Failed to fetch dashboard');
-    const data = await res.json();
+    return res.json();
+}
+
+export const getMonthlyStats = async () => {
+    // Backward compatibility wrapper, but prefer getDashboardData
+    const data = await getDashboardData();
     return data.monthlyStats;
 };
 
 export const getRankings = async () => {
-    const res = await fetch(`${API_URL}/dashboard`);
-    if (!res.ok) throw new Error('Failed to fetch dashboard');
-    const data = await res.json();
+     // Backward compatibility wrapper, but prefer getDashboardData
+    const data = await getDashboardData();
     return data.rankings;
 };
 

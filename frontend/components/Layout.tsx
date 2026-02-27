@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   ClipboardList, 
@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../services/theme';
 import { useTranslation } from '../services/i18n';
-import { getOrders } from '../services/dataService';
+import { getPendingOrderCount } from '../services/dataService';
 
 const SidebarItem = ({ to, icon: Icon, label, badgeCount }: { to: string, icon: any, label: string, badgeCount?: number }) => (
   <NavLink
@@ -44,11 +44,7 @@ const SidebarItem = ({ to, icon: Icon, label, badgeCount }: { to: string, icon: 
   </NavLink>
 );
 
-interface LayoutProps {
-  children?: React.ReactNode;
-}
-
-export const Layout = ({ children }: LayoutProps) => {
+export const Layout = () => {
   const { theme, toggleTheme } = useTheme();
   const { t, language, setLanguage } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -70,8 +66,7 @@ export const Layout = ({ children }: LayoutProps) => {
   useEffect(() => {
     const fetchPending = async () => {
       try {
-        const orders = await getOrders();
-        const count = orders.filter(o => o.status === 'PENDING').length;
+        const count = await getPendingOrderCount();
         setPendingCount(count);
       } catch (error) {
         // Silently fail for badge count updates to avoid blocking UI
@@ -182,7 +177,7 @@ export const Layout = ({ children }: LayoutProps) => {
         {/* Scrollable Area */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8 xl:p-10 z-10 scroll-smooth">
           <div className="max-w-7xl mx-auto space-y-8 pb-20">
-            {children}
+            <Outlet />
           </div>
         </div>
       </main>

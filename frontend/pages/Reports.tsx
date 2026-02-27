@@ -5,10 +5,6 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { getOrders, getBrands, getSettings } from '../services/dataService';
 import { ServiceOrder, Brand } from '../types';
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { useTranslation } from '../services/i18n';
 
 export const Reports: React.FC = () => {
@@ -97,6 +93,9 @@ export const Reports: React.FC = () => {
     new Intl.NumberFormat(safeLanguage, { style: 'currency', currency: 'BRL' }).format(val);
 
   const generateExcel = async () => {
+    const ExcelJS = (await import('exceljs')).default;
+    const { saveAs } = await import('file-saver');
+
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Relatorio_Comissao");
     const settings = await getSettings().catch(() => ({}) as any);
@@ -183,6 +182,9 @@ export const Reports: React.FC = () => {
   };
 
   const generatePDF = async () => {
+    const jsPDF = (await import('jspdf')).default;
+    const autoTable = (await import('jspdf-autotable')).default;
+
     const doc = new jsPDF();
     const settings = await getSettings().catch(() => ({}) as any);
 

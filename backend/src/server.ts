@@ -19,6 +19,7 @@ app.get('/health', (req, res) => {
 });
 
 // Orders
+app.get('/api/orders/pending-count', ordersController.getPendingCount);
 app.get('/api/orders', ordersController.getOrders);
 app.post('/api/orders', ordersController.createOrder);
 app.put('/api/orders/:id', ordersController.updateOrder);

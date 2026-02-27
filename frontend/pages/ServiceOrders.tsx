@@ -144,7 +144,7 @@ export const ServiceOrders: React.FC = () => {
   const refreshData = async () => {
     try {
         const [ordersData, brandsData] = await Promise.all([getOrders(), getBrands()]);
-        ordersData.sort((a, b) => new Date(b.entryDate).getTime() - new Date(a.entryDate).getTime());
+        // REMOVIDO: ordersData.sort(...) - O backend já retorna ordenado
         setOrders(ordersData);
         setBrandsList(brandsData);
         setSelectedIds(new Set());

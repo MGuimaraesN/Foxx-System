@@ -5,7 +5,7 @@ import {
 } from 'recharts';
 import { DollarSign, TrendingUp, Calendar, Trophy, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { Card } from '../components/ui/Card';
-import { getOrders, getMonthlyStats, getRankings } from '../services/dataService';
+import { getOrders, getDashboardData } from '../services/dataService';
 import { ServiceOrder } from '../types';
 import { useTheme } from '../services/theme';
 import { useTranslation } from '../services/i18n';
@@ -107,15 +107,14 @@ export const Dashboard: React.FC = () => {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        const [fetchedOrders, fetchedMonthlyStats, fetchedRankings] = await Promise.all([
+        const [fetchedOrders, dashboardData] = await Promise.all([
           getOrders(),
-          getMonthlyStats(),
-          getRankings()
+          getDashboardData()
         ]);
 
         setOrders(fetchedOrders);
-        setMonthlyStats(fetchedMonthlyStats);
-        setRankings(fetchedRankings);
+        setMonthlyStats(dashboardData.monthlyStats);
+        setRankings(dashboardData.rankings);
 
         // Somando Valor de Serviço em vez de Comissão
         const totalServiceValue = fetchedOrders.reduce((acc, o) => acc + Number(o.serviceValue), 0);
