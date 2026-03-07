@@ -1,5 +1,5 @@
 {
-  "name": "Foxx-System-Backend",
+  "name": "MGN-System-Backend",
   "version": "2.0.0",
   "description": "",
   "main": "index.js",
@@ -17,8 +17,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@prisma/adapter-better-sqlite3": "^7.4.1",
-    "@prisma/config": "^7.4.1",
+    "@prisma/adapter-better-sqlite3": "^7.4.2",
+    "@prisma/config": "^7.4.2",
     "better-sqlite3": "^12.6.2",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
@@ -28,19 +28,20 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@prisma/client": "^7.4.1",
+    "prisma": "^7.4.2",
+    "@prisma/client": "^7.4.2",
     "@types/better-sqlite3": "^7.6.13",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
-    "@types/node": "^25.3.2",
+    "@types/node": "^25.3.5",
     "nodemon": "^3.1.14",
-    "prisma": "^7.4.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
   "overrides": {
     "inflight": "lru-cache",
     "hono": "latest",
-    "lodash": "latest"
+    "lodash": "latest",
+    "@hono/node-server": "^1.19.10"
   }
 }

@@ -14,7 +14,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('commission_sys_user');
+    const storedUser = localStorage.getItem('mgn_sys_user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -23,12 +23,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = (email: string) => {
     const newUser = { id: '1', email, name: email.split('@')[0] };
     setUser(newUser);
-    localStorage.setItem('commission_sys_user', JSON.stringify(newUser));
+    localStorage.setItem('mgn_sys_user', JSON.stringify(newUser));
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('commission_sys_user');
+    localStorage.removeItem('mgn_sys_user');
   };
 
   return (

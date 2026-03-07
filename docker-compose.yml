@@ -1,7 +1,7 @@
 services:
   backend:
     build: ./backend
-    container_name: foxx-system-api
+    container_name: MGN-System-api
     restart: always
     ports:
       - "3020:3020"
@@ -11,7 +11,7 @@ services:
 
   frontend:
     build: ./frontend
-    container_name: foxx-system-web
+    container_name: MGN-System-web
     restart: always
     ports:
       - "3000:80" # Acessar no navegador via localhost:3000

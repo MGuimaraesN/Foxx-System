@@ -389,7 +389,7 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [language, setLanguageState] = useState<Language>('pt-BR');
 
   useEffect(() => {
-    const stored = localStorage.getItem('commission_sys_lang') as Language;
+    const stored = localStorage.getItem('mgn_sys_lang') as Language;
     if (stored && (stored === 'pt-BR' || stored === 'en-US')) {
       setLanguageState(stored);
     }
@@ -397,7 +397,7 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem('commission_sys_lang', lang);
+    localStorage.setItem('mgn_sys_lang', lang);
   };
 
   const t = (path: string, params?: Record<string, string | number>): string => {

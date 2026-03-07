@@ -17,7 +17,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     // Check local storage or system preference
-    const storedTheme = localStorage.getItem('commission_sys_theme') as Theme;
+    const storedTheme = localStorage.getItem('mgn_sys_theme') as Theme;
     if (storedTheme) {
       setTheme(storedTheme);
     } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
@@ -29,7 +29,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(theme);
-    localStorage.setItem('commission_sys_theme', theme);
+    localStorage.setItem('mgn_sys_theme', theme);
   }, [theme]);
 
   const toggleTheme = () => {
