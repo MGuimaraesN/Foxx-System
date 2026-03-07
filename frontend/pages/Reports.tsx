@@ -7,7 +7,7 @@ import { Pagination } from '../components/ui/Pagination';
 import { getBrands, getOrders, getOrdersForExport, getSettings } from '../services/dataService';
 import { Brand, PaginationMeta, ServiceOrder } from '../types';
 import { useTranslation } from '../services/i18n';
-import { toLocalDateInputValue } from '../services/date';
+import { formatDateOnly, normalizeDateOnly, toLocalDateInputValue } from '../services/date';
 
 const PREVIEW_PAGE_SIZE = 50;
 const emptyPagination: PaginationMeta = {
@@ -73,7 +73,7 @@ export const Reports: React.FC = () => {
           if (brandCompare !== 0) return brandCompare;
         }
 
-        const dateCompare = new Date(a.entryDate).getTime() - new Date(b.entryDate).getTime();
+        const dateCompare = normalizeDateOnly(a.entryDate).localeCompare(normalizeDateOnly(b.entryDate));
         if (dateCompare !== 0) return dateCompare;
         return a.osNumber - b.osNumber;
       });
@@ -230,7 +230,7 @@ export const Reports: React.FC = () => {
 
       exportData.forEach((order) => {
         worksheet.addRow({
-          date: new Date(order.entryDate).toLocaleDateString('pt-BR'),
+          date: formatDateOnly(order.entryDate, 'pt-BR'),
           osNumber: order.osNumber,
           customer: order.customerName,
           brand: order.brand,
@@ -339,7 +339,7 @@ export const Reports: React.FC = () => {
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(80, 80, 80);
-      const periodText = `${startDate.split('-').reverse().join('/')} a ${endDate.split('-').reverse().join('/')}`;
+      const periodText = `${formatDateOnly(startDate, safeLanguage)} a ${formatDateOnly(endDate, safeLanguage)}`;
       doc.text(`Período: ${periodText}`, pageWidth - marginRight, titleY + 6, { align: 'right' });
 
       const genDate = new Date().toLocaleString(safeLanguage);
@@ -376,7 +376,7 @@ export const Reports: React.FC = () => {
         doc.text('*** Fim do Resumo Executivo ***', pageWidth / 2, cursorY + 20, { align: 'center' });
       } else {
         const tableBody = exportData.map((order) => [
-          new Date(order.entryDate).toLocaleDateString(safeLanguage),
+          formatDateOnly(order.entryDate, safeLanguage),
           order.osNumber.toString(),
           order.customerName,
           order.brand,
@@ -634,7 +634,7 @@ export const Reports: React.FC = () => {
                 ) : (
                   reportData.map((order) => (
                     <tr key={order.id} className="transition-colors hover:bg-slate-50 dark:hover:bg-white/5">
-                      <td className="whitespace-nowrap px-6 py-4 text-slate-600 dark:text-slate-300">{new Date(order.entryDate).toLocaleDateString(safeLanguage)}</td>
+                      <td className="whitespace-nowrap px-6 py-4 text-slate-600 dark:text-slate-300">{formatDateOnly(order.entryDate, safeLanguage)}</td>
                       <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">#{order.osNumber}</td>
                       <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{order.customerName}</td>
                       <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{order.brand}</td>

@@ -5,6 +5,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { getSettings, saveSettings, getBackupData, restoreBackup } from '../services/dataService';
 import { useTranslation } from '../services/i18n';
+import { toLocalDateInputValue } from '../services/date';
 
 export const Settings: React.FC = () => {
   const { t } = useTranslation();
@@ -80,7 +81,7 @@ export const Settings: React.FC = () => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `${sysName}_Backup_${new Date().toISOString().split('T')[0]}.json`;
+        link.download = `${sysName}_Backup_${toLocalDateInputValue()}.json`;
         link.click();
     };
 

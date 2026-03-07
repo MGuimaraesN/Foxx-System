@@ -18,6 +18,7 @@ import { getDashboardData } from '../services/dataService';
 import { DashboardData } from '../types';
 import { useTheme } from '../services/theme';
 import { useTranslation } from '../services/i18n';
+import { formatDateOnly } from '../services/date';
 
 interface StatCardProps {
   title: string;
@@ -147,7 +148,7 @@ export const Dashboard: React.FC = () => {
     () =>
       dashboardData.charts.last7Days.map((item) => ({
         ...item,
-        label: new Date(`${item.dateStr}T00:00:00`).toLocaleDateString(safeLanguage, {
+        label: formatDateOnly(item.dateStr, safeLanguage, {
           weekday: 'short',
           day: 'numeric'
         }).replace('.', '')
@@ -216,7 +217,7 @@ export const Dashboard: React.FC = () => {
         <StatCard
           title="Recorde Diário"
           value={formatCurrency(stats.bestDayValue)}
-          subValue={stats.bestDayDate ? new Date(`${stats.bestDayDate}T00:00:00`).toLocaleDateString(safeLanguage) : t('dashboard.noDataYet')}
+          subValue={stats.bestDayDate ? formatDateOnly(stats.bestDayDate, safeLanguage) : t('dashboard.noDataYet')}
           icon={Trophy}
           color="text-amber-500"
           variant="highlight"

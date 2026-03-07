@@ -49,7 +49,7 @@ import {
   ServiceOrder
 } from '../types';
 import { useTranslation } from '../services/i18n';
-import { toLocalDateInputValue } from '../services/date';
+import { normalizeDateOnly, toLocalDateInputValue } from '../services/date';
 
 const PAGE_SIZE = 25;
 const emptyPagination: PaginationMeta = {
@@ -272,7 +272,7 @@ export const ServiceOrders: React.FC = () => {
         const formatBRL = (num: number) => num.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
         const escape = (str: string) => `"${str.replace(/"/g, '""')}"`;
         return [
-          order.entryDate.split('T')[0],
+          normalizeDateOnly(order.entryDate),
           '00:00',
           order.osNumber,
           escape(order.customerName),
@@ -365,7 +365,7 @@ export const ServiceOrders: React.FC = () => {
     setEditingId(order.id);
     setFormData({
       osNumber: order.osNumber.toString(),
-      entryDate: order.entryDate.split('T')[0],
+      entryDate: normalizeDateOnly(order.entryDate),
       customerName: order.customerName,
       brand: order.brand,
       serviceValue: order.serviceValue.toString(),
@@ -897,7 +897,7 @@ export const ServiceOrders: React.FC = () => {
                       </button>
                     </td>
                     <td className="whitespace-nowrap px-4 py-4 text-slate-600 dark:text-slate-300">
-                      {order.entryDate.split('T')[0]}
+                      {normalizeDateOnly(order.entryDate)}
                       {order.paidAt && <span className="block text-[10px] text-emerald-500">{t('orders.paidOn')}: {order.paidAt.split('T')[0]}</span>}
                     </td>
                     <td className="whitespace-nowrap px-4 py-4 font-medium text-slate-900 dark:text-white">#{order.osNumber}</td>

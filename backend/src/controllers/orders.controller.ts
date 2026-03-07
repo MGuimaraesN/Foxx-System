@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../db';
 import { createOrderSchema, updateOrderSchema, bulkUpdateOrderSchema } from '../schemas';
 import { getBiWeeklyPeriodRange } from '../utils/period.utils';
+import { endOfUtcDay as endOfDay, startOfUtcDay as startOfDay, toDateOnlyString, toUtcDateOnlyDate } from '../utils/date.utils';
 
 const orderSelect = {
   id: true,
@@ -41,9 +42,6 @@ type OrderStatus = 'PENDING' | 'PAID';
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 const toNumber = (value: Prisma.Decimal | number | null | undefined) => Number(value || 0);
 const isUuid = (value: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
-const toDateOnlyString = (value: string | Date) => new Date(value).toISOString().split('T')[0];
-const startOfDay = (dateStr: string) => new Date(`${dateStr}T00:00:00.000Z`);
-const endOfDay = (dateStr: string) => new Date(`${dateStr}T23:59:59.999Z`);
 const normalizeStatus = (value: unknown): OrderStatus | null => {
   if (typeof value !== 'string') return null;
   const normalized = value.toUpperCase();
@@ -51,10 +49,19 @@ const normalizeStatus = (value: unknown): OrderStatus | null => {
   return null;
 };
 
+const mapPeriod = (period: SelectedOrder['period']) =>
+  period
+    ? {
+        ...period,
+        startDate: toDateOnlyString(period.startDate),
+        endDate: toDateOnlyString(period.endDate)
+      }
+    : null;
+
 const mapOrder = (order: SelectedOrder) => ({
   id: order.id,
   osNumber: order.osNumber,
-  entryDate: order.entryDate,
+  entryDate: toDateOnlyString(order.entryDate),
   customerName: order.customerName,
   brand: order.brand.name,
   brandId: order.brandId,
@@ -62,7 +69,7 @@ const mapOrder = (order: SelectedOrder) => ({
   commissionValue: toNumber(order.commissionValue),
   status: order.status,
   periodId: order.periodId,
-  period: order.period,
+  period: mapPeriod(order.period),
   createdAt: order.createdAt,
   paidAt: order.paidAt,
   paymentMethod: order.paymentMethod,
@@ -146,14 +153,23 @@ const buildCommissionValue = (serviceValue: number, percentage: number) =>
 
 const ensurePeriodExists = async (dateStr: string) => {
   const { start, end } = getBiWeeklyPeriodRange(dateStr);
+  const startDateOnly = toDateOnlyString(start);
+  const endDateOnly = toDateOnlyString(end);
 
   let period = await prisma.period.findFirst({
-    where: { startDate: start, endDate: end }
+    where: {
+      startDate: { gte: startOfDay(startDateOnly), lte: endOfDay(startDateOnly) },
+      endDate: { gte: startOfDay(endDateOnly), lte: endOfDay(endDateOnly) }
+    }
   });
 
   if (!period) {
     period = await prisma.period.create({
-      data: { startDate: start, endDate: end, paid: false }
+      data: {
+        startDate: toUtcDateOnlyDate(startDateOnly),
+        endDate: toUtcDateOnlyDate(endDateOnly),
+        paid: false
+      }
     });
   }
 
@@ -200,7 +216,7 @@ export const createOrder = async (req: Request, res: Response): Promise<any> => 
     const newOrder = await prisma.serviceOrder.create({
       data: {
         osNumber: data.osNumber,
-        entryDate: new Date(data.entryDate),
+        entryDate: toUtcDateOnlyDate(data.entryDate),
         customerName: data.customerName,
         serviceValue: data.serviceValue,
         commissionValue: buildCommissionValue(data.serviceValue, percentage),
@@ -285,7 +301,7 @@ export const updateOrder = async (req: Request, res: Response): Promise<any> => 
         return res.status(400).json({ error: 'Cannot move to paid period' });
       }
 
-      dataToUpdate.entryDate = new Date(updates.entryDate);
+      dataToUpdate.entryDate = toUtcDateOnlyDate(updates.entryDate);
       if (newPeriod.id !== existingOrder.periodId) {
         newPeriodId = newPeriod.id;
         dataToUpdate.period = { connect: { id: newPeriod.id } };
@@ -444,11 +460,10 @@ export const deleteOrder = async (req: Request, res: Response): Promise<any> => 
 };
 
 export const duplicateOrder = async (req: Request, res: Response): Promise<any> => {
-  const id = typeof req.params.id === 'string' ? req.params.id : '';
+  const id = req.params.id as string;
 
   try {
     const original = await prisma.serviceOrder.findUnique({ where: { id } });
-
     if (!original) {
       return res.status(404).json({ error: 'Order not found' });
     }
@@ -456,7 +471,8 @@ export const duplicateOrder = async (req: Request, res: Response): Promise<any> 
     const maxOs = await prisma.serviceOrder.aggregate({ _max: { osNumber: true } });
     const nextOsNumber = (maxOs._max.osNumber || 1000) + 1;
     const now = new Date();
-    const period = await ensurePeriodExists(toDateOnlyString(now));
+    const entryDate = toUtcDateOnlyDate(now);
+    const period = await ensurePeriodExists(toDateOnlyString(entryDate));
 
     if (period.paid) {
       return res.status(400).json({ error: 'Current period is paid/closed.' });
@@ -466,7 +482,7 @@ export const duplicateOrder = async (req: Request, res: Response): Promise<any> 
     const newOrder = await prisma.serviceOrder.create({
       data: {
         osNumber: nextOsNumber,
-        entryDate: now,
+        entryDate,
         customerName: original.customerName,
         serviceValue: original.serviceValue,
         commissionValue: buildCommissionValue(Number(original.serviceValue), commissionPercentage),
