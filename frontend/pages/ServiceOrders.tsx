@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Plus, Search, Trash2, Edit2, AlertCircle, Download, Filter, X, CheckCircle, DollarSign, CheckSquare, Square, Copy, History, CreditCard, Clock, FileText, Tag } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { createOrder, getOrders, getSettings, updateOrder, deleteOrder, getBrands, updateOrderStatus, bulkUpdateOrderStatus, bulkDeleteOrders, duplicateOrder, addBrand, getAuditLogs } from '../services/dataService';
+import { createOrder, getOrders, getSettings, updateOrder, deleteOrder, getBrands, updateOrderStatus, bulkUpdateOrderStatus, bulkDeleteOrders, duplicateOrder, addBrand, getAuditLogsByOrder, notifyOrdersUpdated } from '../services/dataService';
 import { ServiceOrder, Brand, AuditLogEntry, AppSettings } from '../types';
 import { useTranslation } from '../services/i18n';
 
 export const ServiceOrders: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const safeLanguage = language || 'pt-BR';
   const [orders, setOrders] = useState<ServiceOrder[]>([]);
   
   // Search & Filter State
@@ -144,7 +145,7 @@ export const ServiceOrders: React.FC = () => {
   const refreshData = async () => {
     try {
         const [ordersData, brandsData] = await Promise.all([getOrders(), getBrands()]);
-        ordersData.sort((a, b) => new Date(b.entryDate).getTime() - new Date(a.entryDate).getTime());
+        // REMOVIDO: ordersData.sort(...) - O backend já retorna ordenado
         setOrders(ordersData);
         setBrandsList(brandsData);
         setSelectedIds(new Set());
@@ -218,6 +219,7 @@ export const ServiceOrders: React.FC = () => {
       }
       
       await refreshData();
+      notifyOrdersUpdated();
       resetForm();
     } catch (err: any) {
       setError(err.message || 'Error saving order');
@@ -251,6 +253,7 @@ export const ServiceOrders: React.FC = () => {
       try {
           await duplicateOrder(id);
           await refreshData();
+          notifyOrdersUpdated();
       } catch (e: any) {
           alert(e.message || 'Error duplicating order');
       }
@@ -259,8 +262,8 @@ export const ServiceOrders: React.FC = () => {
   const handleShowHistory = async (order: ServiceOrder) => {
       // OTIMIZAÇÃO: Busca histórico sob demanda para manter sistema rápido
       try {
-          const logs = await getAuditLogs();
-          setSelectedHistory(logs.filter((l: any) => l.serviceOrderId === order.id));
+          const logs = await getAuditLogsByOrder(order.id);
+          setSelectedHistory(logs);
           setIsHistoryOpen(true);
       } catch (e) {
           alert("Erro ao carregar histórico");
@@ -273,6 +276,7 @@ export const ServiceOrders: React.FC = () => {
         try {
             await updateOrderStatus(order.id, 'PAID');
             await refreshData();
+            notifyOrdersUpdated();
         } catch (e: any) {
             alert(e.message || 'Error updating status');
         }
@@ -287,6 +291,7 @@ export const ServiceOrders: React.FC = () => {
          await deleteOrder(deleteConfirm.id);
       }
       await refreshData();
+      notifyOrdersUpdated();
     } catch (e: any) {
       alert(e.message || 'Error deleting');
     }
@@ -314,6 +319,7 @@ export const ServiceOrders: React.FC = () => {
           try {
              await bulkUpdateOrderStatus(Array.from(selectedIds), 'PAID');
              await refreshData();
+             notifyOrdersUpdated();
           } catch(e: any) {
               alert(e.message || 'Error bulk updating');
           }
@@ -370,8 +376,13 @@ export const ServiceOrders: React.FC = () => {
       }
   };
 
-  const formatCurrency = (val: number) => 
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+  // MICRO-OPTIMIZATION: Reuse a stable formatter instance instead of creating one per call
+  const currencyFormatter = useMemo(() =>
+    new Intl.NumberFormat(safeLanguage, { style: 'currency', currency: 'BRL' }),
+    [safeLanguage]
+  );
+
+  const formatCurrency = useCallback((val: number) => currencyFormatter.format(val), [currencyFormatter]);
 
   const getHistoryColor = (action: string) => {
       if (action.includes('CREATED')) return 'bg-emerald-500';

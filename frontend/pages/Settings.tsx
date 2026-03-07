@@ -20,6 +20,17 @@ export const Settings: React.FC = () => {
   const [saved, setSaved] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // helper to uppercase first letter of a string
+  const capitalize = (str: string) =>
+    str.charAt(0).toUpperCase() + str.slice(1);
+
+  // build a safe system name: spaces → underscore, each word capitalized
+  const sysName = (import.meta.env.VITE_APP_NAME ?? '')
+    .replace(/\s+/g, '_')
+    .split('_')
+    .map(capitalize)
+    .join('_');
+
   useEffect(() => {
     const loadSettings = async () => {
       try {
@@ -69,7 +80,7 @@ export const Settings: React.FC = () => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `commission_backup_${new Date().toISOString().split('T')[0]}.json`;
+        link.download = `${sysName}_Backup_${new Date().toISOString().split('T')[0]}.json`;
         link.click();
     };
 

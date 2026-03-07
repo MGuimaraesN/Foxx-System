@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Plus, Search, Trash2, Edit2, AlertCircle, Tag, X } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -10,7 +10,6 @@ import { useTranslation } from '../services/i18n';
 export const Brands: React.FC = () => {
   const { t } = useTranslation();
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [filteredBrands, setFilteredBrands] = useState<Brand[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   
   // UI State
@@ -25,13 +24,12 @@ export const Brands: React.FC = () => {
     loadBrands();
   }, []);
 
-  useEffect(() => {
+  const filteredBrands = useMemo(() => {
     if (searchTerm) {
-      setFilteredBrands(brands.filter(b => b.name.toLowerCase().includes(searchTerm.toLowerCase())));
-    } else {
-      setFilteredBrands(brands);
+      return brands.filter(b => b.name.toLowerCase().includes(searchTerm.toLowerCase()));
     }
-  }, [searchTerm, brands]);
+    return brands;
+  }, [brands, searchTerm]);
 
   const loadBrands = async () => {
     try {

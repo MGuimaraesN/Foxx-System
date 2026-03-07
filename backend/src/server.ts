@@ -19,10 +19,14 @@ app.get('/health', (req, res) => {
 });
 
 // Orders
+app.get('/api/orders/pending-count', ordersController.getPendingCount);
 app.get('/api/orders', ordersController.getOrders);
 app.post('/api/orders', ordersController.createOrder);
 app.put('/api/orders/:id', ordersController.updateOrder);
 app.delete('/api/orders/:id', ordersController.deleteOrder);
+app.post('/api/orders/:id/duplicate', ordersController.duplicateOrder);
+app.post('/api/orders/bulk-update', ordersController.bulkUpdateOrders);
+app.post('/api/orders/bulk-delete', ordersController.bulkDeleteOrders);
 
 // Periods
 // app.get('/api/periods', periodsController.getPeriods);
@@ -48,6 +52,7 @@ app.post('/api/brands', brandsController.createBrand);
 app.delete('/api/brands/:id', brandsController.deleteBrand);
 
 // Audit
+app.get('/api/audit/order/:orderId', auditController.getAuditLogsByOrder);
 app.get('/api/audit', auditController.getAuditLogs);
 
 app.listen(PORT, () => {

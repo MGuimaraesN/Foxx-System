@@ -1,63 +1,62 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
-import { ServiceOrders } from './pages/ServiceOrders';
-// import { Periods } from './pages/Periods';
-import { Brands } from './pages/Brands';
-import { Reports } from './pages/Reports';
-import { Settings } from './pages/Settings';
-import { Audit } from './pages/Audit';
+// Lazy load pages that might be heavy or not always visited
+const ServiceOrders = React.lazy(() => import('./pages/ServiceOrders').then(module => ({ default: module.ServiceOrders })));
+const Brands = React.lazy(() => import('./pages/Brands').then(module => ({ default: module.Brands })));
+const Reports = React.lazy(() => import('./pages/Reports').then(module => ({ default: module.Reports })));
+const Settings = React.lazy(() => import('./pages/Settings').then(module => ({ default: module.Settings })));
+const Audit = React.lazy(() => import('./pages/Audit').then(module => ({ default: module.Audit })));
+
 import { ErrorBoundary } from './components/ErrorBoundary';
+
+const Loading = () => (
+  <div className="flex items-center justify-center h-full min-h-[400px]">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+  </div>
+);
 
 const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <HashRouter>
         <Routes>
-          <Route path="/" element={
-            <Layout>
-              <Dashboard />
-            </Layout>
-          } />
+          <Route element={<Layout />}>
+            <Route path="/" element={<Dashboard />} />
 
-          <Route path="/orders" element={
-            <Layout>
-              <ServiceOrders />
-            </Layout>
-          } />
+            <Route path="/orders" element={
+              <Suspense fallback={<Loading />}>
+                <ServiceOrders />
+              </Suspense>
+            } />
 
-          { /* <Route path="/periods" element={
-            <Layout>
-              <Periods />
-            </Layout>
-          } /> */}
+            <Route path="/brands" element={
+               <Suspense fallback={<Loading />}>
+                 <Brands />
+               </Suspense>
+            } />
 
-          <Route path="/brands" element={
-            <Layout>
-              <Brands />
-            </Layout>
-          } />
+            <Route path="/reports" element={
+               <Suspense fallback={<Loading />}>
+                 <Reports />
+               </Suspense>
+            } />
 
-          <Route path="/reports" element={
-            <Layout>
-              <Reports />
-            </Layout>
-          } />
+            <Route path="/settings" element={
+               <Suspense fallback={<Loading />}>
+                 <Settings />
+               </Suspense>
+            } />
 
-          <Route path="/settings" element={
-            <Layout>
-              <Settings />
-            </Layout>
-          } />
+            <Route path="/audit" element={
+               <Suspense fallback={<Loading />}>
+                 <Audit />
+               </Suspense>
+            } />
 
-          <Route path="/audit" element={
-            <Layout>
-              <Audit />
-            </Layout>
-          } />
-
-          <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
         </Routes>
       </HashRouter>
     </ErrorBoundary>
