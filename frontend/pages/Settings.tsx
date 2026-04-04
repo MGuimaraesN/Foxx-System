@@ -5,6 +5,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { getSettings, saveSettings, getBackupData, restoreBackup } from '../services/dataService';
 import { useTranslation } from '../services/i18n';
+import { toLocalDateInputValue } from '../services/date';
 
 export const Settings: React.FC = () => {
   const { t } = useTranslation();
@@ -19,6 +20,17 @@ export const Settings: React.FC = () => {
   });
   const [saved, setSaved] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // helper to uppercase first letter of a string
+  const capitalize = (str: string) =>
+    str.charAt(0).toUpperCase() + str.slice(1);
+
+  // build a safe system name: spaces → underscore, each word capitalized
+  const sysName = (import.meta.env.VITE_APP_NAME ?? '')
+    .replace(/\s+/g, '_')
+    .split('_')
+    .map(capitalize)
+    .join('_');
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -45,7 +57,7 @@ export const Settings: React.FC = () => {
     e.preventDefault();
     const val = parseFloat(percentage);
     if (isNaN(val) || val < 0 || val > 100) {
-      alert("Please enter a valid percentage (0-100)");
+            alert(t('settings.invalidPercentage'));
       return;
     }
     
@@ -69,7 +81,7 @@ export const Settings: React.FC = () => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `commission_backup_${new Date().toISOString().split('T')[0]}.json`;
+        link.download = `${sysName}_Backup_${toLocalDateInputValue()}.json`;
         link.click();
     };
 
@@ -138,14 +150,14 @@ export const Settings: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input 
                         label={t('settings.companyName')}
-                        placeholder="My Tech Services Ltd"
+                        placeholder={t('settings.companyNamePlaceholder')}
                         value={company.name}
                         onChange={e => setCompany({...company, name: e.target.value})}
                         icon={<Building size={16} />}
                     />
                     <Input 
                         label={t('settings.cnpj')}
-                        placeholder="00.000.000/0001-00"
+                        placeholder={t('settings.cnpjPlaceholder')}
                         value={company.cnpj}
                         onChange={e => setCompany({...company, cnpj: e.target.value})}
                         icon={<FileText size={16} />}
@@ -153,20 +165,20 @@ export const Settings: React.FC = () => {
                 </div>
                 <Input 
                     label={t('settings.address')}
-                    placeholder="123 Business Av, Tech City"
+                    placeholder={t('settings.addressPlaceholder')}
                     value={company.address}
                     onChange={e => setCompany({...company, address: e.target.value})}
                 />
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input 
                         label={t('settings.contact')}
-                        placeholder="(11) 99999-9999 / contact@company.com"
+                        placeholder={t('settings.contactPlaceholder')}
                         value={company.contact}
                         onChange={e => setCompany({...company, contact: e.target.value})}
                     />
                     <Input 
                         label={t('settings.logoUrl')}
-                        placeholder="https://example.com/logo.png"
+                        placeholder={t('settings.logoPlaceholder')}
                         value={company.logoUrl}
                         onChange={e => setCompany({...company, logoUrl: e.target.value})}
                     />
@@ -176,7 +188,7 @@ export const Settings: React.FC = () => {
                        <Input 
                            label={t('settings.primaryColor')}
                            type="text"
-                           placeholder="#2c3e50"
+                           placeholder={t('settings.primaryColorPlaceholder')}
                            value={company.primaryColor}
                            onChange={e => setCompany({...company, primaryColor: e.target.value})}
                            icon={<Palette size={16} />}

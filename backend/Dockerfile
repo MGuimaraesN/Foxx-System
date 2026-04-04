@@ -32,7 +32,7 @@ RUN npm ci
 
 # Copiar arquivos construídos da etapa anterior
 COPY --from=builder /app/dist ./dist
-COPY  /prisma ./prisma
+COPY prisma ./prisma
 COPY prisma.config.ts ./
 COPY .env ./
 

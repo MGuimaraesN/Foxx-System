@@ -58,6 +58,9 @@ model ServiceOrder {
   @@index([status])
   @@index([brandId])
   @@index([periodId])
+  @@index([entryDate, osNumber])
+  @@index([status, entryDate])
+  @@index([brandId, entryDate])
 }
 
 model AuditLog {

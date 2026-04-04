@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, Outlet } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   ClipboardList, 
@@ -17,7 +17,8 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../services/theme';
 import { useTranslation } from '../services/i18n';
-import { getOrders } from '../services/dataService';
+import { getPendingOrderCount } from '../services/dataService';
+import { useAuth } from '../services/auth';
 
 const SidebarItem = ({ to, icon: Icon, label, badgeCount }: { to: string, icon: any, label: string, badgeCount?: number }) => (
   <NavLink
@@ -44,13 +45,10 @@ const SidebarItem = ({ to, icon: Icon, label, badgeCount }: { to: string, icon: 
   </NavLink>
 );
 
-interface LayoutProps {
-  children?: React.ReactNode;
-}
-
-export const Layout = ({ children }: LayoutProps) => {
+export const Layout = () => {
   const { theme, toggleTheme } = useTheme();
   const { t, language, setLanguage } = useTranslation();
+  const { user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const [pendingCount, setPendingCount] = useState(0);
@@ -70,16 +68,19 @@ export const Layout = ({ children }: LayoutProps) => {
   useEffect(() => {
     const fetchPending = async () => {
       try {
-        const orders = await getOrders();
-        const count = orders.filter(o => o.status === 'PENDING').length;
+        const count = await getPendingOrderCount();
         setPendingCount(count);
       } catch (error) {
-        // Silently fail for badge count updates to avoid blocking UI
         console.warn("Failed to fetch pending count", error);
       }
     };
     
     fetchPending();
+
+    // Listen for global updates to refresh badge
+    const handleUpdate = () => fetchPending();
+    window.addEventListener('orders-updated', handleUpdate);
+    return () => window.removeEventListener('orders-updated', handleUpdate);
   }, []);
 
   return (
@@ -102,7 +103,7 @@ export const Layout = ({ children }: LayoutProps) => {
           <SidebarItem to="/brands" icon={Tags} label={t('common.brands')} />
           <SidebarItem to="/reports" icon={FileBarChart} label={t('common.reports')} />
           <SidebarItem to="/settings" icon={Settings} label={t('common.settings')} />
-          <SidebarItem to="/audit" icon={ClipboardList} label="Auditoria" />
+          <SidebarItem to="/audit" icon={ClipboardList} label={t('common.audit')} />
         </nav>
 
         <div className="mt-auto pt-6 border-t border-slate-200 dark:border-white/5">
@@ -111,7 +112,7 @@ export const Layout = ({ children }: LayoutProps) => {
                  A
               </div>
               <div className="overflow-hidden">
-                  <p className="text-sm font-semibold text-slate-800 dark:text-white truncate">Mateus</p>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-white truncate">{user?.name || t('common.system')}</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{t('common.authenticated')}</p>
               </div>
            </div>
@@ -138,7 +139,7 @@ export const Layout = ({ children }: LayoutProps) => {
           <SidebarItem to="/brands" icon={Tags} label={t('common.brands')} />
           <SidebarItem to="/reports" icon={FileBarChart} label={t('common.reports')} />
           <SidebarItem to="/settings" icon={Settings} label={t('common.settings')} />
-          <SidebarItem to="/audit" icon={ClipboardList} label="Auditoria" />
+          <SidebarItem to="/audit" icon={ClipboardList} label={t('common.audit')} />
         </nav>
       </div>
 
@@ -163,7 +164,7 @@ export const Layout = ({ children }: LayoutProps) => {
              <button
               onClick={toggleLanguage}
               className="px-3 py-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-white/10 flex items-center gap-2"
-              title="Toggle Language"
+              title={t('common.toggleLanguage')}
              >
                <Globe size={18} />
                <span className="text-xs font-bold uppercase">{language.split('-')[0]}</span>
@@ -172,7 +173,7 @@ export const Layout = ({ children }: LayoutProps) => {
              <button
               onClick={toggleTheme}
               className="p-2.5 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-white/10"
-              title="Toggle Theme"
+              title={t('common.toggleTheme')}
              >
                {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
              </button>
@@ -182,7 +183,7 @@ export const Layout = ({ children }: LayoutProps) => {
         {/* Scrollable Area */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8 xl:p-10 z-10 scroll-smooth">
           <div className="max-w-7xl mx-auto space-y-8 pb-20">
-            {children}
+            <Outlet />
           </div>
         </div>
       </main>

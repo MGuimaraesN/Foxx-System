@@ -31,3 +31,29 @@ export const getAuditLogs = async (req: Request, res: Response) => {
     res.status(500).json({ error: e.message });
   }
 };
+
+export const getAuditLogsByOrder = async (req: Request, res: Response) => {
+  const { orderId } = req.params;
+
+  try {
+    const logs = await prisma.auditLog.findMany({
+      where: { serviceOrderId: orderId as string },
+      orderBy: { timestamp: 'desc' },
+      include: { user: true }
+    });
+
+    res.json(
+      logs.map((log) => ({
+        id: log.id,
+        timestamp: log.timestamp,
+        action: log.action,
+        details: log.details,
+        user: log.user?.name || 'System',
+        serviceOrderId: log.serviceOrderId
+      }))
+    );
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).json({ error: e.message });
+  }
+};

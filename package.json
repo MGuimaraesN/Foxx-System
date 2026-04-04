@@ -1,6 +1,6 @@
 {
-  "name": "Foxx-System",
-  "version": "2.0.0",
+  "name": "MGN-System",
+  "version": "2.0.2",
   "private": true,
   "scripts": {
     "postinstall": "cd backend && npm install && cd ../frontend && npm install",
@@ -8,10 +8,10 @@
     "prisma:dev": "npm run prisma:dev --prefix backend",
     "build": "npm run build --prefix backend && npm run build --prefix frontend",
     "prisma:start": "npm run prisma:start --prefix backend",
-    "start": "npm run start --prefix backend && npm run preview --prefix frontend",
+    "start": "concurrently -n backend,frontend \"npm --prefix backend run start\" \"npm --prefix frontend run preview\"",
     "seed": "npm run seed --prefix backend"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.2.1"
   }
 }

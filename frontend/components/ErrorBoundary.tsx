@@ -23,23 +23,47 @@ export class ErrorBoundary extends Component<Props, State> {
     console.error('Uncaught error:', error, errorInfo);
   }
 
+  private getLanguage() {
+    const stored = localStorage.getItem('mgn_sys_lang');
+    return stored === 'en-US' ? 'en-US' : 'pt-BR';
+  }
+
+  private getCopy() {
+    const language = this.getLanguage();
+
+    if (language === 'en-US') {
+      return {
+        title: 'Something went wrong',
+        fallback: 'An unexpected error occurred.',
+        reload: 'Reload Application'
+      };
+    }
+
+    return {
+      title: 'Algo deu errado',
+      fallback: 'Ocorreu um erro inesperado.',
+      reload: 'Recarregar Aplicação'
+    };
+  }
+
   public render() {
     if (this.state.hasError) {
+      const copy = this.getCopy();
       return (
         <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
           <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl max-w-md w-full text-center">
             <div className="w-16 h-16 bg-red-100 dark:bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 dark:text-red-400 text-2xl font-bold">
               !
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Something went wrong</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{copy.title}</h1>
             <p className="text-slate-500 dark:text-slate-400 mb-6">
-              {this.state.error?.message || "An unexpected error occurred."}
+              {this.state.error?.message || copy.fallback}
             </p>
             <button
               onClick={() => window.location.reload()}
               className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-colors"
             >
-              Reload Application
+              {copy.reload}
             </button>
           </div>
         </div>

@@ -46,7 +46,7 @@ export const Login: React.FC = () => {
             <Input 
                 label={t('login.email')} 
                 type="email" 
-                placeholder="admin@commission.sys"
+              placeholder={t('login.emailPlaceholder')}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required

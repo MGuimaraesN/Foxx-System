@@ -6,9 +6,10 @@ import { Input } from '../components/ui/Input';
 import { getPeriods, markPeriodAsPaid, initializeData, createPeriod, updatePeriod, deletePeriod } from '../services/dataService';
 import { Period } from '../types';
 import { useTranslation } from '../services/i18n';
+import { formatDateOnly, normalizeDateOnly } from '../services/date';
 
 export const Periods: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [periods, setPeriods] = useState<Period[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -34,7 +35,7 @@ export const Periods: React.FC = () => {
         await markPeriodAsPaid(id);
         refreshPeriods();
       } catch (error: any) {
-        alert(error.message || "Error closing period");
+        alert(error.message || t('periods.errorClose'));
       }
     }
   };
@@ -45,7 +46,7 @@ export const Periods: React.FC = () => {
               await deletePeriod(id);
               refreshPeriods();
           } catch (error: any) {
-              alert(error.message || "Error deleting period");
+              alert(error.message || t('periods.errorDelete'));
           }
       }
   };
@@ -63,7 +64,7 @@ export const Periods: React.FC = () => {
           setEditingId(null);
           setFormData({ startDate: '', endDate: '' });
       } catch (e: any) {
-          alert(e.message || "Error saving period");
+            alert(e.message || t('periods.errorSave'));
       }
   };
 
@@ -75,20 +76,20 @@ export const Periods: React.FC = () => {
 
   const openEdit = (period: Period) => {
       if (period.paid) {
-          alert("Cannot edit closed periods.");
+        alert(t('periods.cannotEditClosed'));
           return;
       }
       setEditingId(period.id);
       // Format to YYYY-MM-DD
       setFormData({
-          startDate: period.startDate.split('T')[0],
-          endDate: period.endDate.split('T')[0]
+          startDate: normalizeDateOnly(period.startDate),
+          endDate: normalizeDateOnly(period.endDate)
       });
       setIsModalOpen(true);
   }
 
   const formatCurrency = (val: number) => 
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+    new Intl.NumberFormat(language || 'pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
   return (
     <div className="space-y-6">
@@ -127,7 +128,7 @@ export const Periods: React.FC = () => {
                   </div>
                   <div>
                     <h3 className="font-bold text-slate-800 dark:text-white text-lg tracking-tight">
-                        {new Date(period.startDate).toLocaleDateString()} → {new Date(period.endDate).toLocaleDateString()}
+                        {formatDateOnly(period.startDate, language)} → {formatDateOnly(period.endDate, language)}
                     </h3>
                     <p className={`text-xs font-semibold uppercase tracking-wider ${period.paid ? 'text-emerald-600 dark:text-emerald-400' : 'text-indigo-600 dark:text-indigo-400'}`}>
                         {period.paid ? t('periods.closedPaid') : t('periods.openPeriod')}
