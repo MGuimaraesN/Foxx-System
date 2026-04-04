@@ -42,7 +42,6 @@ const getLastMonthRange = () => {
 export const Reports: React.FC = () => {
   const { t, language } = useTranslation();
   const safeLanguage = language || 'pt-BR';
-  const isPt = safeLanguage.startsWith('pt');
   const initialRange = useMemo(() => getCurrentMonthRange(), []);
 
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -185,27 +184,27 @@ export const Reports: React.FC = () => {
       );
 
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Relatorio_Comissao');
+      const worksheet = workbook.addWorksheet(t('reports.excelSheetName'));
       const settings = await getSettings().catch(() => ({}) as any);
 
       worksheet.columns = [
-        { header: 'Data', key: 'date', width: 15, style: { alignment: { horizontal: 'center' } } },
-        { header: 'O.S', key: 'osNumber', width: 15, style: { alignment: { horizontal: 'center' } } },
-        { header: 'Cliente', key: 'customer', width: 35, style: { alignment: { horizontal: 'center' } } },
-        { header: 'Marca', key: 'brand', width: 20, style: { alignment: { horizontal: 'center' } } },
+        { header: t('reports.excelDate'), key: 'date', width: 15, style: { alignment: { horizontal: 'center' } } },
+        { header: t('reports.excelOs'), key: 'osNumber', width: 15, style: { alignment: { horizontal: 'center' } } },
+        { header: t('reports.excelCustomer'), key: 'customer', width: 35, style: { alignment: { horizontal: 'center' } } },
+        { header: t('reports.excelBrand'), key: 'brand', width: 20, style: { alignment: { horizontal: 'center' } } },
         {
-          header: 'Valor (R$)',
+          header: t('reports.excelValue'),
           key: 'service',
           width: 18,
           style: { numFmt: '_-R$ * #,##0.00_-;-R$ * #,##0.00_-;_-R$ * "-"??_-;_-@_-', alignment: { horizontal: 'center' } }
         },
         {
-          header: 'Comissão (R$)',
+          header: t('reports.excelCommission'),
           key: 'commission',
           width: 18,
           style: { numFmt: '_-R$ * #,##0.00_-;-R$ * #,##0.00_-;_-R$ * "-"??_-;_-@_-', alignment: { horizontal: 'center' } }
         },
-        { header: 'Status', key: 'status', width: 15, style: { alignment: { horizontal: 'center' } } }
+        { header: t('common.status'), key: 'status', width: 15, style: { alignment: { horizontal: 'center' } } }
       ];
 
       const primaryColorHex = settings.primaryColor || '#6366f1';
@@ -241,7 +240,7 @@ export const Reports: React.FC = () => {
       });
 
       const totalRow = worksheet.addRow({
-        date: 'TOTAL DE COMISSÃO NO PERÍODO',
+        date: t('reports.commissionPeriodTotal'),
         commission: exportTotals.commission
       });
 
@@ -267,7 +266,7 @@ export const Reports: React.FC = () => {
 
       const buffer = await workbook.xlsx.writeBuffer();
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      saveAs(blob, `comissao_${startDate}_a_${endDate}.xlsx`);
+      saveAs(blob, `${t('reports.reportFilePrefix')}_${startDate}_${t('reports.periodConnector')}_${endDate}.xlsx`);
     } finally {
       setIsExporting(false);
     }
@@ -327,25 +326,25 @@ export const Reports: React.FC = () => {
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(80, 80, 80);
-        doc.text(`Contato: ${settings.companyContact}`, marginLeft, cursorY);
+        doc.text(`${t('reports.contactLabel')}: ${settings.companyContact}`, marginLeft, cursorY);
       }
 
       const titleY = 20;
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(30, 30, 30);
-      doc.text('RELATÓRIO DE COMISSÃO', pageWidth - marginRight, titleY, { align: 'right' });
+      doc.text(t('reports.reportPdfTitle'), pageWidth - marginRight, titleY, { align: 'right' });
 
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(80, 80, 80);
-      const periodText = `${formatDateOnly(startDate, safeLanguage)} a ${formatDateOnly(endDate, safeLanguage)}`;
-      doc.text(`Período: ${periodText}`, pageWidth - marginRight, titleY + 6, { align: 'right' });
+      const periodText = `${formatDateOnly(startDate, safeLanguage)} ${t('reports.periodConnector')} ${formatDateOnly(endDate, safeLanguage)}`;
+      doc.text(`${t('reports.period')}: ${periodText}`, pageWidth - marginRight, titleY + 6, { align: 'right' });
 
       const genDate = new Date().toLocaleString(safeLanguage);
       doc.setFontSize(8);
       doc.setTextColor(100, 100, 100);
-      doc.text(`Gerado em: ${genDate}`, pageWidth - marginRight, titleY + 11, { align: 'right' });
+      doc.text(`${t('reports.generatedOnLabel')}: ${genDate}`, pageWidth - marginRight, titleY + 11, { align: 'right' });
 
       cursorY = Math.max(cursorY, titleY + 11) + 8;
       doc.setDrawColor(primaryColorHex);
@@ -365,15 +364,15 @@ export const Reports: React.FC = () => {
         doc.text(value, x, cursorY + 6);
       };
 
-      drawStat('TOTAL DE ORDENS', exportData.length.toString(), marginLeft);
-      drawStat('COMISSÃO TOTAL', formatCurrency(exportTotals.commission), marginLeft + 50);
+      drawStat(t('reports.totalOrdersUpper'), exportData.length.toString(), marginLeft);
+      drawStat(t('reports.totalCommissionUpper'), formatCurrency(exportTotals.commission), marginLeft + 50);
       cursorY += 15;
 
       if (isSummaryOnly) {
         doc.setFontSize(10);
         doc.setFont('helvetica', 'italic');
         doc.setTextColor(100, 100, 100);
-        doc.text('*** Fim do Resumo Executivo ***', pageWidth / 2, cursorY + 20, { align: 'center' });
+        doc.text(t('reports.endOfSummary'), pageWidth / 2, cursorY + 20, { align: 'center' });
       } else {
         const tableBody = exportData.map((order) => [
           formatDateOnly(order.entryDate, safeLanguage),
@@ -387,7 +386,7 @@ export const Reports: React.FC = () => {
 
         const tableFoot = [
           {
-            content: 'TOTAL DE COMISSÃO NO PERÍODO',
+            content: t('reports.commissionPeriodTotal'),
             colSpan: 5,
             styles: { halign: 'right' as const, fontStyle: 'bold' as const, textColor: [60, 60, 60] }
           },
@@ -400,7 +399,7 @@ export const Reports: React.FC = () => {
 
         autoTable(doc, {
           startY: cursorY,
-          head: [['Data', 'O.S', 'Cliente', 'Marca', 'Valor (R$)', 'Comissão (R$)', 'Status']],
+          head: [[t('reports.excelDate'), t('reports.excelOs'), t('reports.excelCustomer'), t('reports.excelBrand'), t('reports.excelValue'), t('reports.excelCommission'), t('common.status')]],
           body: tableBody,
           foot: [tableFoot],
           theme: 'plain',
@@ -454,7 +453,7 @@ export const Reports: React.FC = () => {
             if (data.pageNumber > 1) {
               doc.setFontSize(8);
               doc.setTextColor(150, 150, 150);
-              doc.text(`Relatório de Comissão - ${systemName}`, marginLeft, 10);
+              doc.text(`${t('reports.reportPdfTitle')} - ${systemName}`, marginLeft, 10);
             }
 
             const pageCount = doc.getNumberOfPages();
@@ -467,7 +466,7 @@ export const Reports: React.FC = () => {
         });
       }
 
-      const fileName = isSummaryOnly ? `Resumo_Executivo_${startDate}.pdf` : `Relatorio_Comissao_${startDate}.pdf`;
+      const fileName = isSummaryOnly ? `${t('reports.summaryFilePrefix')}_${startDate}.pdf` : `${t('reports.reportFilePrefix')}_${startDate}.pdf`;
       doc.save(fileName);
     } finally {
       setIsExporting(false);
@@ -515,7 +514,7 @@ export const Reports: React.FC = () => {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="ml-1 text-xs font-medium text-slate-500 dark:text-slate-400">Status</label>
+            <label className="ml-1 text-xs font-medium text-slate-500 dark:text-slate-400">{t('reports.statusLabel')}</label>
             <div className="relative">
               <select
                 className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-all focus:border-indigo-500/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700/50 dark:bg-slate-950/50 dark:text-slate-100"
@@ -612,7 +611,7 @@ export const Reports: React.FC = () => {
                   <th className="px-6 py-4 font-medium">{t('orders.brand')}</th>
                   <th className="px-6 py-4 text-right font-medium">{t('common.value')}</th>
                   <th className="px-6 py-4 text-right font-medium">{t('dashboard.commission')}</th>
-                  <th className="px-6 py-4 text-center font-medium">Status</th>
+                  <th className="px-6 py-4 text-center font-medium">{t('common.status')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -621,7 +620,7 @@ export const Reports: React.FC = () => {
                     <td colSpan={7} className="px-6 py-10 text-center text-slate-500">
                       <div className="flex flex-col items-center justify-center gap-3">
                         <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-t-2 border-indigo-500" />
-                        <span>{isPt ? 'Carregando prévia...' : 'Loading preview...'}</span>
+                        <span>{t('reports.loadingPreview')}</span>
                       </div>
                     </td>
                   </tr>

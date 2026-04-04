@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PaginationMeta } from '../../types';
+import { useTranslation } from '../../services/i18n';
 
 interface PaginationProps {
   pagination: PaginationMeta;
@@ -10,12 +11,7 @@ interface PaginationProps {
 }
 
 export const Pagination: React.FC<PaginationProps> = ({ pagination, onPageChange, isLoading = false, language = 'pt-BR' }) => {
-  const isPt = language.startsWith('pt');
-  const previousLabel = isPt ? 'Anterior' : 'Previous';
-  const nextLabel = isPt ? 'Próxima' : 'Next';
-  const pageLabel = isPt ? 'Página' : 'Page';
-  const showingLabel = isPt ? 'Mostrando' : 'Showing';
-  const ofLabel = isPt ? 'de' : 'of';
+  const { t } = useTranslation();
 
   const total = pagination.total || 0;
   const currentPage = pagination.page || 1;
@@ -26,7 +22,7 @@ export const Pagination: React.FC<PaginationProps> = ({ pagination, onPageChange
   return (
     <div className="flex flex-col gap-3 border-t border-slate-100 px-6 py-4 text-sm text-slate-500 dark:border-white/5 dark:text-slate-400 md:flex-row md:items-center md:justify-between">
       <span>
-        {showingLabel} <strong className="text-slate-700 dark:text-slate-200">{from}-{to}</strong> {ofLabel}{' '}
+        {t('common.showing')} <strong className="text-slate-700 dark:text-slate-200">{from}-{to}</strong> {t('common.of')}{' '}
         <strong className="text-slate-700 dark:text-slate-200">{total}</strong>
       </span>
 
@@ -38,11 +34,11 @@ export const Pagination: React.FC<PaginationProps> = ({ pagination, onPageChange
           className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
         >
           <ChevronLeft size={16} />
-          {previousLabel}
+          {t('common.previous')}
         </button>
 
         <span className="min-w-[110px] text-center font-medium text-slate-700 dark:text-slate-200">
-          {pageLabel} {currentPage} / {pagination.pages || 1}
+          {t('common.page')} {currentPage} / {pagination.pages || 1}
         </span>
 
         <button
@@ -51,7 +47,7 @@ export const Pagination: React.FC<PaginationProps> = ({ pagination, onPageChange
           disabled={isLoading || !pagination.hasNext}
           className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
         >
-          {nextLabel}
+          {t('common.next')}
           <ChevronRight size={16} />
         </button>
       </div>

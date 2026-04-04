@@ -35,7 +35,7 @@ export const Periods: React.FC = () => {
         await markPeriodAsPaid(id);
         refreshPeriods();
       } catch (error: any) {
-        alert(error.message || "Error closing period");
+        alert(error.message || t('periods.errorClose'));
       }
     }
   };
@@ -46,7 +46,7 @@ export const Periods: React.FC = () => {
               await deletePeriod(id);
               refreshPeriods();
           } catch (error: any) {
-              alert(error.message || "Error deleting period");
+              alert(error.message || t('periods.errorDelete'));
           }
       }
   };
@@ -64,7 +64,7 @@ export const Periods: React.FC = () => {
           setEditingId(null);
           setFormData({ startDate: '', endDate: '' });
       } catch (e: any) {
-          alert(e.message || "Error saving period");
+            alert(e.message || t('periods.errorSave'));
       }
   };
 
@@ -76,7 +76,7 @@ export const Periods: React.FC = () => {
 
   const openEdit = (period: Period) => {
       if (period.paid) {
-          alert("Cannot edit closed periods.");
+        alert(t('periods.cannotEditClosed'));
           return;
       }
       setEditingId(period.id);
@@ -89,7 +89,7 @@ export const Periods: React.FC = () => {
   }
 
   const formatCurrency = (val: number) => 
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+    new Intl.NumberFormat(language || 'pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
   return (
     <div className="space-y-6">

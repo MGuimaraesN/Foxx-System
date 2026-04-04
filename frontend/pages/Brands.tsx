@@ -107,7 +107,7 @@ export const Brands: React.FC = () => {
                 label={t('brands.brandName')}
                 value={formData.name}
                 onChange={e => setFormData({...formData, name: e.target.value})}
-                placeholder="e.g. Samsung"
+                placeholder={t('brands.brandPlaceholder')}
                 autoFocus
               />
 

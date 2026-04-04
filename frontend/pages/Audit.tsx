@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { getAuditLogs } from '../services/dataService';
-import { AuditLogEntry } from '../types';
 import { History, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useTranslation } from '../services/i18n';
 
 export const Audit: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [logs, setLogs] = useState<any[]>([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [loading, setLoading] = useState(false);
@@ -32,9 +31,9 @@ export const Audit: React.FC = () => {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-            <History className="text-slate-400" /> Auditoria
+            <History className="text-slate-400" /> {t('audit.title')}
         </h2>
-        <p className="text-slate-500 dark:text-slate-400 mt-1">Registro de atividades do sistema.</p>
+        <p className="text-slate-500 dark:text-slate-400 mt-1">{t('audit.subtitle')}</p>
       </div>
 
       <Card className="overflow-hidden">
@@ -42,17 +41,17 @@ export const Audit: React.FC = () => {
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 dark:bg-slate-900">
               <tr className="border-b border-slate-100 dark:border-white/5 text-slate-500 dark:text-slate-400">
-                <th className="px-6 py-4 font-medium">Data</th>
-                <th className="px-6 py-4 font-medium">Ação</th>
-                <th className="px-6 py-4 font-medium">Detalhes</th>
-                <th className="px-6 py-4 font-medium">Usuário</th>
+                <th className="px-6 py-4 font-medium">{t('audit.date')}</th>
+                <th className="px-6 py-4 font-medium">{t('audit.action')}</th>
+                <th className="px-6 py-4 font-medium">{t('audit.details')}</th>
+                <th className="px-6 py-4 font-medium">{t('audit.user')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
               {logs.map((log) => (
                 <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                   <td className="px-6 py-4 text-slate-500 font-mono text-xs">
-                    {new Date(log.timestamp).toLocaleString()}
+                    {new Date(log.timestamp).toLocaleString(language)}
                   </td>
                   <td className="px-6 py-4 font-semibold text-slate-700 dark:text-slate-300">
                     <span className={`px-2 py-1 rounded text-xs ${
@@ -68,7 +67,7 @@ export const Audit: React.FC = () => {
                     {log.details}
                   </td>
                   <td className="px-6 py-4 text-slate-500 text-xs uppercase">
-                    {log.user?.name || 'System'}
+                    {log.user?.name || t('common.system')}
                   </td>
                 </tr>
               ))}
@@ -79,7 +78,7 @@ export const Audit: React.FC = () => {
         {/* Pagination */}
         <div className="p-4 border-t border-slate-100 dark:border-white/5 flex justify-between items-center">
             <span className="text-xs text-slate-500">
-                Página {pagination.page} de {pagination.pages} ({pagination.total} registros)
+            {t('audit.pageSummary', { page: pagination.page, pages: pagination.pages, total: pagination.total })}
             </span>
             <div className="flex gap-2">
                 <button

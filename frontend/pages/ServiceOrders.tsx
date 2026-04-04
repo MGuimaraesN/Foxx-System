@@ -73,7 +73,6 @@ const emptySummary: OrdersSummary = {
 export const ServiceOrders: React.FC = () => {
   const { t, language } = useTranslation();
   const safeLanguage = language || 'pt-BR';
-  const isPt = safeLanguage.startsWith('pt');
   const [orders, setOrders] = useState<ServiceOrder[]>([]);
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -100,7 +99,7 @@ export const ServiceOrders: React.FC = () => {
   const [formData, setFormData] = useState({
     osNumber: '',
     entryDate: toLocalDateInputValue(),
-    customerName: 'Consumidor Padrão',
+    customerName: t('orders.defaultCustomer'),
     brand: '',
     serviceValue: '',
     paymentMethod: '' as PaymentMethod,
@@ -110,23 +109,14 @@ export const ServiceOrders: React.FC = () => {
   const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
   const [settings, setSettings] = useState<AppSettings>({ fixedCommissionPercentage: 10 });
 
-  const summaryLabels = isPt
-    ? {
-        filtered: 'Resultado filtrado',
-        totalValue: 'Valor total',
-        commission: 'Comissão',
-        pending: 'Pendentes',
-        paid: 'Pagas',
-        loading: 'Carregando ordens...'
-      }
-    : {
-        filtered: 'Filtered result',
-        totalValue: 'Total value',
-        commission: 'Commission',
-        pending: 'Pending',
-        paid: 'Paid',
-        loading: 'Loading orders...'
-      };
+  const summaryLabels = {
+    filtered: t('common.filtersActive'),
+    totalValue: t('reports.totalVolume'),
+    commission: t('reports.totalCommission'),
+    pending: t('status.PENDING'),
+    paid: t('status.PAID'),
+    loading: t('orders.loading')
+  };
 
   const currencyFormatter = useMemo(
     () => new Intl.NumberFormat(safeLanguage, { style: 'currency', currency: 'BRL' }),
@@ -256,20 +246,20 @@ export const ServiceOrders: React.FC = () => {
 
       const headers = [
         t('orders.date'),
-        'Time',
+        t('orders.csvTime'),
         t('orders.osNumber'),
         t('orders.customer'),
         t('orders.brand'),
         t('orders.value'),
-        'Commission Value',
-        'Status',
-        'Paid At',
+        t('orders.csvCommissionValue'),
+        t('common.status'),
+        t('orders.csvPaidAt'),
         t('orders.paymentMethod'),
-        'Period'
+        t('orders.csvPeriod')
       ];
 
       const rows = exportOrders.map((order) => {
-        const formatBRL = (num: number) => num.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        const formatBRL = (num: number) => num.toLocaleString(safeLanguage, { minimumFractionDigits: 2 });
         const escape = (str: string) => `"${str.replace(/"/g, '""')}"`;
         return [
           normalizeDateOnly(order.entryDate),
@@ -282,7 +272,7 @@ export const ServiceOrders: React.FC = () => {
           t(`status.${order.status}`),
           order.paidAt ? order.paidAt.split('T')[0] : '-',
           order.paymentMethod || '-',
-          order.periodId ? 'Period Set' : '-'
+          order.periodId ? t('orders.csvPeriodSet') : '-'
         ].join(';');
       });
 
@@ -297,7 +287,7 @@ export const ServiceOrders: React.FC = () => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (e: any) {
-      alert(e.message || 'Error exporting CSV');
+      alert(e.message || t('orders.errorExportCsv'));
     } finally {
       setIsExporting(false);
     }
@@ -352,13 +342,13 @@ export const ServiceOrders: React.FC = () => {
       notifyOrdersUpdated();
       resetForm();
     } catch (err: any) {
-      setError(err.message || 'Error saving order');
+      setError(err.message || t('orders.errorSave'));
     }
   };
 
   const handleEdit = (order: ServiceOrder) => {
     if (order.status === 'PAID') {
-      alert(isPt ? 'Esta ordem já foi paga e não pode ser editada.' : 'This order is PAID and cannot be edited.');
+      alert(t('orders.alreadyPaidNotEditable'));
       return;
     }
 
@@ -381,7 +371,7 @@ export const ServiceOrders: React.FC = () => {
       await reloadCurrentPage(1);
       notifyOrdersUpdated();
     } catch (e: any) {
-      alert(e.message || 'Error duplicating order');
+      alert(e.message || t('orders.errorDuplicate'));
     }
   };
 
@@ -391,14 +381,14 @@ export const ServiceOrders: React.FC = () => {
       setSelectedHistory(logs);
       setIsHistoryOpen(true);
     } catch (e) {
-      alert(isPt ? 'Erro ao carregar histórico' : 'Failed to load history');
+      alert(t('orders.errorLoadHistory'));
     }
   };
 
   const handleTogglePaid = async (order: ServiceOrder) => {
     if (order.status === 'PAID') return;
 
-    const confirmed = window.confirm(isPt ? `Marcar a ordem #${order.osNumber} como PAGA?` : `Mark Order #${order.osNumber} as PAID?`);
+    const confirmed = window.confirm(t('orders.confirmMarkPaidSingle', { osNumber: order.osNumber }));
     if (!confirmed) return;
 
     try {
@@ -406,7 +396,7 @@ export const ServiceOrders: React.FC = () => {
       await reloadCurrentPage();
       notifyOrdersUpdated();
     } catch (e: any) {
-      alert(e.message || 'Error updating status');
+      alert(e.message || t('orders.errorUpdateStatus'));
     }
   };
 
@@ -424,7 +414,7 @@ export const ServiceOrders: React.FC = () => {
       await reloadCurrentPage(pageAfterDelete);
       notifyOrdersUpdated();
     } catch (e: any) {
-      alert(e.message || 'Error deleting');
+      alert(e.message || t('orders.errorDelete'));
     }
   };
 
@@ -446,9 +436,7 @@ export const ServiceOrders: React.FC = () => {
 
   const handleBulkPay = async () => {
     if (selectedIds.size === 0) return;
-    const confirmed = window.confirm(
-      isPt ? `Marcar ${selectedIds.size} ordens selecionadas como PAGAS?` : `Mark ${selectedIds.size} selected orders as PAID?`
-    );
+    const confirmed = window.confirm(t('orders.confirmMarkPaidBulk', { count: selectedIds.size }));
     if (!confirmed) return;
 
     try {
@@ -456,7 +444,7 @@ export const ServiceOrders: React.FC = () => {
       await reloadCurrentPage();
       notifyOrdersUpdated();
     } catch (e: any) {
-      alert(e.message || 'Error bulk updating');
+      alert(e.message || t('orders.errorBulkUpdate'));
     }
   };
 
@@ -471,7 +459,7 @@ export const ServiceOrders: React.FC = () => {
     setFormData({
       osNumber: '',
       entryDate: toLocalDateInputValue(),
-      customerName: 'Consumidor Padrão',
+      customerName: t('orders.defaultCustomer'),
       brand: defaultBrand,
       serviceValue: '',
       paymentMethod: '',
@@ -487,7 +475,7 @@ export const ServiceOrders: React.FC = () => {
     setFormData({
       osNumber: '',
       entryDate: toLocalDateInputValue(),
-      customerName: 'Consumidor Padrão',
+      customerName: t('orders.defaultCustomer'),
       brand: brandsList[0]?.name || '',
       serviceValue: '',
       paymentMethod: '',
@@ -506,7 +494,7 @@ export const ServiceOrders: React.FC = () => {
       setNewBrandName('');
       setIsBrandModalOpen(false);
     } catch (e: any) {
-      alert(e.message || 'Error adding brand');
+      alert(e.message || t('orders.errorAddBrand'));
     }
   };
 
@@ -600,11 +588,11 @@ export const ServiceOrders: React.FC = () => {
                       {index < selectedHistory.length - 1 && <div className="my-1 h-full w-px bg-slate-200 dark:bg-white/10" />}
                     </div>
                     <div className="pb-6">
-                      <p className="mb-1 font-mono text-xs text-slate-400">{new Date(entry.timestamp).toLocaleString()}</p>
+                      <p className="mb-1 font-mono text-xs text-slate-400">{new Date(entry.timestamp).toLocaleString(safeLanguage)}</p>
                       <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{entry.action}</p>
                       <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">{entry.details}</p>
                       <div className="mt-2 flex items-center gap-2">
-                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:bg-white/5">{entry.user || 'System'}</span>
+                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:bg-white/5">{entry.user || t('common.system')}</span>
                       </div>
                     </div>
                   </div>
@@ -633,7 +621,7 @@ export const ServiceOrders: React.FC = () => {
                   required
                   value={formData.osNumber}
                   onChange={(e) => setFormData({ ...formData, osNumber: e.target.value })}
-                  placeholder="e.g. 1001"
+                  placeholder="1001"
                 />
                 <Input
                   label={t('orders.date')}
@@ -648,16 +636,16 @@ export const ServiceOrders: React.FC = () => {
                 label={t('orders.customer')}
                 value={formData.customerName}
                 onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                placeholder="Consumidor Padrão"
+                placeholder={t('orders.defaultCustomer')}
               />
 
               <div className="flex flex-col gap-1.5">
-                <label className="ml-1 text-xs font-medium text-slate-500 dark:text-slate-400">Descrição (Opcional)</label>
+                <label className="ml-1 text-xs font-medium text-slate-500 dark:text-slate-400">{t('orders.descriptionOptional')}</label>
                 <textarea
                   className="h-20 w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-all focus:border-indigo-500/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700/50 dark:bg-slate-950/50 dark:text-slate-100"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Detalhes do serviço..."
+                  placeholder={t('orders.descriptionPlaceholder')}
                 />
               </div>
 
@@ -687,7 +675,7 @@ export const ServiceOrders: React.FC = () => {
                       type="button"
                       onClick={() => setIsBrandModalOpen(true)}
                       className="rounded-xl bg-slate-100 p-2.5 text-slate-600 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-                      title="Add Brand"
+                      title={t('orders.addBrand')}
                     >
                       <Plus size={18} />
                     </button>
@@ -717,9 +705,9 @@ export const ServiceOrders: React.FC = () => {
                   >
                     <option value="">{t('orders.none')}</option>
                     <option value="PIX">PIX</option>
-                    <option value="CASH">Cash</option>
-                    <option value="CARD">Card</option>
-                    <option value="TRANSFER">Bank Transfer</option>
+                    <option value="CASH">{t('orders.paymentCash')}</option>
+                    <option value="CARD">{t('orders.paymentCard')}</option>
+                    <option value="TRANSFER">{t('orders.paymentTransfer')}</option>
                   </select>
                   <CreditCard className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                 </div>
@@ -737,7 +725,7 @@ export const ServiceOrders: React.FC = () => {
                   {t('common.cancel')}
                 </Button>
                 <Button type="submit" className="flex-1">
-                  Salvar
+                  {t('orders.saveOrder')}
                 </Button>
               </div>
             </form>
@@ -747,21 +735,21 @@ export const ServiceOrders: React.FC = () => {
 
       {isBrandModalOpen && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <Card className="w-full max-w-sm border-indigo-500/20 shadow-2xl" title="Nova Marca">
+          <Card className="w-full max-w-sm border-indigo-500/20 shadow-2xl" title={t('orders.quickNewBrand')}>
             <div className="space-y-4">
               <Input
-                label="Nome da Marca"
+                label={t('orders.quickBrandName')}
                 value={newBrandName}
                 onChange={(e) => setNewBrandName(e.target.value)}
-                placeholder="Ex: Samsung"
+                placeholder={t('orders.quickBrandPlaceholder')}
                 autoFocus
               />
               <div className="flex gap-3 pt-2">
                 <Button variant="secondary" onClick={() => setIsBrandModalOpen(false)} className="flex-1">
-                  Cancelar
+                  {t('common.cancel')}
                 </Button>
                 <Button onClick={handleQuickAddBrand} className="flex-1">
-                  Salvar
+                  {t('common.save')}
                 </Button>
               </div>
             </div>
@@ -862,7 +850,7 @@ export const ServiceOrders: React.FC = () => {
                 <th className="whitespace-nowrap px-4 py-4 font-semibold">{t('orders.brand')}</th>
                 <th className="whitespace-nowrap px-4 py-4 text-right font-semibold">{t('common.value')}</th>
                 <th className="whitespace-nowrap px-4 py-4 text-right font-semibold">{t('dashboard.commission')}</th>
-                <th className="whitespace-nowrap px-4 py-4 text-center font-semibold">Status</th>
+                <th className="whitespace-nowrap px-4 py-4 text-center font-semibold">{t('common.status')}</th>
                 <th className="whitespace-nowrap px-4 py-4 text-right font-semibold">{t('common.actions')}</th>
               </tr>
             </thead>

@@ -192,7 +192,7 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="h-8 w-px bg-slate-100 dark:bg-white/10" />
           <div className="flex flex-col">
-            <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">VALOR HOJE</span>
+            <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('dashboard.todayValue')}</span>
             <span className="text-lg font-bold leading-none text-indigo-600 dark:text-indigo-400">{formatCurrency(stats.todayService)}</span>
           </div>
           <div className="h-8 w-px bg-slate-100 dark:bg-white/10" />
@@ -205,9 +205,9 @@ export const Dashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Faturamento Mês"
+          title={t('dashboard.monthlyRevenue')}
           value={formatCurrency(monthlyStats.currentMonth.total || 0)}
-          subValue="Total em serviços este mês"
+          subValue={t('dashboard.monthlyRevenueSub')}
           icon={TrendingUp}
           color="text-emerald-500"
           trend={monthlyStats.growth}
@@ -215,7 +215,7 @@ export const Dashboard: React.FC = () => {
         />
 
         <StatCard
-          title="Recorde Diário"
+          title={t('dashboard.dailyRecord')}
           value={formatCurrency(stats.bestDayValue)}
           subValue={stats.bestDayDate ? formatDateOnly(stats.bestDayDate, safeLanguage) : t('dashboard.noDataYet')}
           icon={Trophy}
@@ -224,24 +224,24 @@ export const Dashboard: React.FC = () => {
         />
 
         <StatCard
-          title="Faturamento Hoje"
+          title={t('dashboard.todayRevenue')}
           value={formatCurrency(stats.todayService)}
-          subValue="Total de O.S. abertas hoje"
+          subValue={t('dashboard.todayRevenueSub')}
           icon={Calendar}
           color="text-violet-500"
         />
 
         <StatCard
-          title="Faturamento Total"
+          title={t('dashboard.totalRevenue')}
           value={formatCurrency(stats.totalServiceValue)}
-          subValue="Todo o período histórico"
+          subValue={t('dashboard.totalRevenueSub')}
           icon={DollarSign}
           color="text-indigo-500"
         />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2 min-h-[400px]" title="Evolução Diária de Valor (O.S.)">
+        <Card className="lg:col-span-2 min-h-[400px]" title={t('dashboard.dailyEvolution')}>
           <div className="mt-4 h-[320px] w-full">
             <ResponsiveContainer width="100%" height={320} debounce={50} minWidth={0}>
               <AreaChart data={lineData}>
@@ -273,7 +273,7 @@ export const Dashboard: React.FC = () => {
                     boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
                   }}
                   itemStyle={{ fontWeight: 600 }}
-                  formatter={(value: number) => [formatCurrency(value), 'Valor Total']}
+                  formatter={(value: number) => [formatCurrency(value), t('reports.totalVolume')]}
                 />
                 <Area
                   type="monotone"
@@ -289,7 +289,7 @@ export const Dashboard: React.FC = () => {
           </div>
         </Card>
 
-        <Card title="Status das O.S">
+        <Card title={t('dashboard.ordersStatusShort')}>
           <div className="relative flex h-[320px] w-full items-center justify-center">
             <ResponsiveContainer width="100%" height={320} debounce={50} minWidth={0}>
               <PieChart>
@@ -322,14 +322,14 @@ export const Dashboard: React.FC = () => {
             </ResponsiveContainer>
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pb-8">
               <span className="text-4xl font-bold tracking-tighter text-slate-800 dark:text-white">{stats.totalOrders}</span>
-              <span className="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">TOTAL O.S.</span>
+              <span className="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">{t('dashboard.totalOrdersShort')}</span>
             </div>
           </div>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <Card title={t('dashboard.topBrands')} subtitle="Por volume de faturamento">
+        <Card title={t('dashboard.topBrands')} subtitle={t('dashboard.byVolume')}>
           <div className="mt-4 space-y-5">
             {rankings.topBrands.length === 0 ? (
               <p className="text-sm text-slate-500 dark:text-slate-400">{t('dashboard.noBrandData')}</p>
@@ -351,7 +351,7 @@ export const Dashboard: React.FC = () => {
           </div>
         </Card>
 
-        <Card title={t('dashboard.topCustomers')} subtitle="Maiores investidores">
+        <Card title={t('dashboard.topCustomers')} subtitle={t('dashboard.byVolume')}>
           <div className="mt-4 space-y-5">
             {rankings.topCustomers.length === 0 ? (
               <p className="text-sm text-slate-500 dark:text-slate-400">{t('dashboard.noCustomerData')}</p>
