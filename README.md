@@ -149,5 +149,4 @@ O projeto utiliza uma stack moderna baseada em TypeScript para garantir consist�
     
 -   `Settings`: Configurações de sistema persistidas.
     
-
 **Desenvolvido por** [**MGuimaraesN**](https://github.com/mguimaraesn "null")
