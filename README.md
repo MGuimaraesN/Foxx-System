@@ -147,7 +147,6 @@ O projeto utiliza uma stack moderna baseada em TypeScript para garantir consist�
     
 -   `AuditLog`: Registo de rasto para segurança.
     
--   `Settings`: Configurações de sistema persistidas.
-    
+-   `Settings`: Configurações de sistema persistidas. 
 
 **Desenvolvido por** [**MGuimaraesN**](https://github.com/mguimaraesn "null")
